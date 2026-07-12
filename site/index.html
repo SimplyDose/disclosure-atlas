@@ -242,6 +242,41 @@
 
   <hr class="rule">
 
+  <section id="instrument">
+    <h2>The instrument</h2>
+    <p>The app is live at <a href="https://disclosure-atlas.vercel.app">disclosure-atlas.vercel.app</a>. These are
+      real screens from it, not mockups.</p>
+
+    <figure>
+      <img class="shot" src="assets/app_constellation.png" width="1440" height="900" loading="lazy"
+           alt="The Disclosure Atlas constellation view: 161,469 footnotes plotted as points of light by semantic similarity, with enforcement history shown in amber.">
+      <figcaption><b>The constellation.</b> Every point is one of the 161,469 footnotes from 3,253 public companies,
+        placed by how its language resembles the rest of the corpus. Companies with SEC enforcement history appear in
+        amber. That is context about the company, not a verdict.</figcaption>
+    </figure>
+
+    <figure>
+      <img class="shot" src="assets/app_correlations.png" width="1440" height="900" loading="lazy"
+           alt="The correlation matrix view showing Spearman rank correlations near zero between disclosure measures and financial measures.">
+      <figcaption><b>The correlation matrix view.</b> Spearman rank correlations across the measures, computed live
+        over the full corpus (23,592 company-years, which is broader than the paper's going-concern cohort of
+        4,186). The disclosure rows are negligible against every financial measure. You can reproduce the
+        non-association yourself in the tool.</figcaption>
+    </figure>
+
+    <figure>
+      <img class="shot" src="assets/app_screen_define.png" width="1440" height="900" loading="lazy"
+           alt="The systematic screen's define view, showing the full test family enumerated and registered before any result is computed.">
+      <figcaption><b>The systematic screen.</b> The full test family is enumerated and registered before any result
+        is computed. The Bonferroni and Benjamini&ndash;Hochberg FDR corrections are mandatory, every test is
+        reported, and excluded tests are listed rather than silently dropped. Here the tool enumerates 12,308
+        candidate tests over the full corpus and 2,890 enter the family. The paper's committed family was 460 tests
+        within the going-concern cohort.</figcaption>
+    </figure>
+  </section>
+
+  <hr class="rule">
+
   <section id="methodology">
     <h2>Methodology</h2>
 
