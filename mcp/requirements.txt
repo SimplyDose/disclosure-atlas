@@ -1,0 +1,6 @@
+# Disclosure Atlas MCP server — runtime dependencies (all already present in the repo .venv).
+# Read-only; no secrets; no Anthropic/SEC network at runtime. Query embedding is local (fastembed/ONNX).
+mcp>=1.28
+fastembed>=0.8        # bge-small-en-v1.5 (ONNX, CPU) — same encoder the website uses; $0
+numpy>=2.0
+duckdb>=1.5

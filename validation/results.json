@@ -1,0 +1,314 @@
+{
+  "separation": {
+    "rev_rec": {
+      "intra_enforced_mean": 0.6731,
+      "enforced_to_clean_mean": 0.6782,
+      "mean_diff": -0.0051,
+      "cohens_d": -0.117,
+      "pct_enforced_closer_to_enforced": 0.244,
+      "n_enforced": 1687,
+      "n_clean": 39110
+    },
+    "going_concern": {
+      "intra_enforced_mean": 0.7625,
+      "enforced_to_clean_mean": 0.7552,
+      "mean_diff": 0.0073,
+      "cohens_d": 0.153,
+      "pct_enforced_closer_to_enforced": 0.812,
+      "n_enforced": 447,
+      "n_clean": 8467
+    },
+    "related_party": {
+      "intra_enforced_mean": 0.6113,
+      "enforced_to_clean_mean": 0.6199,
+      "mean_diff": -0.0086,
+      "cohens_d": -0.253,
+      "pct_enforced_closer_to_enforced": 0.234,
+      "n_enforced": 702,
+      "n_clean": 22978
+    },
+    "cam": {
+      "intra_enforced_mean": 0.7436,
+      "enforced_to_clean_mean": 0.7405,
+      "mean_diff": 0.003,
+      "cohens_d": 0.112,
+      "pct_enforced_closer_to_enforced": 0.734,
+      "n_enforced": 184,
+      "n_clean": 9565
+    },
+    "mda": {
+      "intra_enforced_mean": 0.6077,
+      "enforced_to_clean_mean": 0.6096,
+      "mean_diff": -0.002,
+      "cohens_d": -0.057,
+      "pct_enforced_closer_to_enforced": 0.304,
+      "n_enforced": 940,
+      "n_clean": 25804
+    },
+    "risk_factors": {
+      "intra_enforced_mean": 0.5927,
+      "enforced_to_clean_mean": 0.5922,
+      "mean_diff": 0.0005,
+      "cohens_d": 0.015,
+      "pct_enforced_closer_to_enforced": 0.543,
+      "n_enforced": 1612,
+      "n_clean": 49973
+    }
+  },
+  "retrieval": {
+    "rev_rec": {
+      "p@10": {
+        "semantic": 0.063,
+        "keyword": 0.081,
+        "base_rate": 0.041,
+        "semantic_lift": 1.54,
+        "recall": 0.0
+      },
+      "p@25": {
+        "semantic": 0.06,
+        "keyword": 0.079,
+        "base_rate": 0.041,
+        "semantic_lift": 1.44,
+        "recall": 0.001
+      },
+      "p@50": {
+        "semantic": 0.056,
+        "keyword": 0.074,
+        "base_rate": 0.041,
+        "semantic_lift": 1.36,
+        "recall": 0.002
+      }
+    },
+    "going_concern": {
+      "p@10": {
+        "semantic": 0.045,
+        "keyword": 0.041,
+        "base_rate": 0.05,
+        "semantic_lift": 0.9,
+        "recall": 0.001
+      },
+      "p@25": {
+        "semantic": 0.053,
+        "keyword": 0.041,
+        "base_rate": 0.05,
+        "semantic_lift": 1.06,
+        "recall": 0.003
+      },
+      "p@50": {
+        "semantic": 0.057,
+        "keyword": 0.044,
+        "base_rate": 0.05,
+        "semantic_lift": 1.14,
+        "recall": 0.007
+      }
+    },
+    "related_party": {
+      "p@10": {
+        "semantic": 0.047,
+        "keyword": 0.057,
+        "base_rate": 0.03,
+        "semantic_lift": 1.59,
+        "recall": 0.001
+      },
+      "p@25": {
+        "semantic": 0.039,
+        "keyword": 0.045,
+        "base_rate": 0.03,
+        "semantic_lift": 1.31,
+        "recall": 0.001
+      },
+      "p@50": {
+        "semantic": 0.033,
+        "keyword": 0.04,
+        "base_rate": 0.03,
+        "semantic_lift": 1.12,
+        "recall": 0.002
+      }
+    },
+    "cam": {
+      "p@10": {
+        "semantic": 0.019,
+        "keyword": 0.014,
+        "base_rate": 0.019,
+        "semantic_lift": 1.01,
+        "recall": 0.001
+      },
+      "p@25": {
+        "semantic": 0.028,
+        "keyword": 0.015,
+        "base_rate": 0.019,
+        "semantic_lift": 1.51,
+        "recall": 0.004
+      },
+      "p@50": {
+        "semantic": 0.027,
+        "keyword": 0.016,
+        "base_rate": 0.019,
+        "semantic_lift": 1.43,
+        "recall": 0.008
+      }
+    },
+    "mda": {
+      "p@10": {
+        "semantic": 0.028,
+        "keyword": 0.025,
+        "base_rate": 0.035,
+        "semantic_lift": 0.79,
+        "recall": 0.0
+      },
+      "p@25": {
+        "semantic": 0.031,
+        "keyword": 0.028,
+        "base_rate": 0.035,
+        "semantic_lift": 0.87,
+        "recall": 0.001
+      },
+      "p@50": {
+        "semantic": 0.031,
+        "keyword": 0.03,
+        "base_rate": 0.035,
+        "semantic_lift": 0.89,
+        "recall": 0.002
+      }
+    },
+    "risk_factors": {
+      "p@10": {
+        "semantic": 0.036,
+        "keyword": 0.039,
+        "base_rate": 0.031,
+        "semantic_lift": 1.15,
+        "recall": 0.0
+      },
+      "p@25": {
+        "semantic": 0.033,
+        "keyword": 0.037,
+        "base_rate": 0.031,
+        "semantic_lift": 1.06,
+        "recall": 0.001
+      },
+      "p@50": {
+        "semantic": 0.033,
+        "keyword": 0.035,
+        "base_rate": 0.031,
+        "semantic_lift": 1.05,
+        "recall": 0.001
+      }
+    }
+  },
+  "headline_candidates": [
+    {
+      "clean_company": "UNIVERSAL CORP /VA/",
+      "clean_cik": "0000102037",
+      "clean_type": "mda",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "PYXUS INTERNATIONAL, INC.",
+      "nearest_enforced_cik": "0000939930",
+      "cosine": 0.846,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/102037/000010203723000025/uvv-20230331.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/939930/000093993018000037/aoi-20180331x10k.htm",
+      "clean_excerpt": "See the “Results of Operations” section in “Management’s Discussion and Analysis of Financial Condition and Results of Operations” in Item 7 for a discussion of adjusted operating income (loss), adjusted net income (loss) attributable to Universal Corporation, adjusted diluted ea",
+      "enforced_excerpt": "To support these business lines, we have broad geographic processing capabilities, a diversified product offering, an established customer base for our core business and a growing customer base for our new business lines. We intend to continue broadening our business portfolio ov"
+    },
+    {
+      "clean_company": "UNIVERSAL CORP /VA/",
+      "clean_cik": "0000102037",
+      "clean_type": "mda",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "PYXUS INTERNATIONAL, INC.",
+      "nearest_enforced_cik": "0000939930",
+      "cosine": 0.842,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/102037/000010203722000015/uvv-20220331.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/939930/000093993018000037/aoi-20180331x10k.htm",
+      "clean_excerpt": "S ee the “Results of Operations” section in “Management’s Discussion and Analysis of Financial Condition and Results of Operations” in Item 7 for a discussion of adjusted operating income (loss), adjusted net income (loss) attributable to Universal Corporation, adjusted diluted e",
+      "enforced_excerpt": "To support these business lines, we have broad geographic processing capabilities, a diversified product offering, an established customer base for our core business and a growing customer base for our new business lines. We intend to continue broadening our business portfolio ov"
+    },
+    {
+      "clean_company": "REPUBLIC SERVICES, INC.",
+      "clean_cik": "0001060391",
+      "clean_type": "risk_factors",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "NAVISTAR INTERNATIONAL CORP",
+      "nearest_enforced_cik": "0000808450",
+      "cosine": 0.842,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/1060391/000106039122000007/rsg-20211231.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/808450/000080845014000085/nav10k2014.htm",
+      "clean_excerpt": "In August 2011, the EPA and the NHTSA finalized standards for heavy-duty trucks, including solid waste collection vehicles and tractor trailers, for model years 2014 through 2018. On August 16, 2016, the EPA and the NHTSA jointly issued additional regulations that would impose mo",
+      "enforced_excerpt": "New on-highway emissions standards commenced in the U.S. on January 1, 2007, which reduced allowable particulate matter and allowable nitrogen oxide (\"NOx\") and have reached the last phase-in period effective with engine model year 2010. Meeting these new emissions standards resu"
+    },
+    {
+      "clean_company": "REPUBLIC SERVICES, INC.",
+      "clean_cik": "0001060391",
+      "clean_type": "risk_factors",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "NAVISTAR INTERNATIONAL CORP",
+      "nearest_enforced_cik": "0000808450",
+      "cosine": 0.84,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/1060391/000106039123000008/rsg-20221231.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/808450/000080845014000085/nav10k2014.htm",
+      "clean_excerpt": "In August 2011, the EPA and the NHTSA finalized standards for heavy-duty trucks, including solid waste collection vehicles and tractor trailers, for model years 2014 through 2018. In August 2016, the EPA and the NHTSA jointly issued additional regulations that would impose more s",
+      "enforced_excerpt": "New on-highway emissions standards commenced in the U.S. on January 1, 2007, which reduced allowable particulate matter and allowable nitrogen oxide (\"NOx\") and have reached the last phase-in period effective with engine model year 2010. Meeting these new emissions standards resu"
+    },
+    {
+      "clean_company": "REPUBLIC SERVICES, INC.",
+      "clean_cik": "0001060391",
+      "clean_type": "risk_factors",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "NAVISTAR INTERNATIONAL CORP",
+      "nearest_enforced_cik": "0000808450",
+      "cosine": 0.839,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/1060391/000106039124000142/rsg-20231231.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/808450/000080845014000085/nav10k2014.htm",
+      "clean_excerpt": "In August 2011, the EPA and the NHTSA finalized standards for heavy-duty trucks, including solid waste collection vehicles and tractor trailers, for model years 2014 through 2018. In August 2016, the EPA and the NHTSA jointly issued additional regulations that would impose more s",
+      "enforced_excerpt": "New on-highway emissions standards commenced in the U.S. on January 1, 2007, which reduced allowable particulate matter and allowable nitrogen oxide (\"NOx\") and have reached the last phase-in period effective with engine model year 2010. Meeting these new emissions standards resu"
+    },
+    {
+      "clean_company": "UNIVERSAL CORP /VA/",
+      "clean_cik": "0000102037",
+      "clean_type": "mda",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "PYXUS INTERNATIONAL, INC.",
+      "nearest_enforced_cik": "0000939930",
+      "cosine": 0.837,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/102037/000010203721000012/uvv-20210331.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/939930/000093993018000037/aoi-20180331x10k.htm",
+      "clean_excerpt": "Tobacco has been our principal focus since our founding in 1918, and we are the leading global leaf tobacco supplier. Through our plant-based ingredients platform, we provide a variety of value-added manufacturing processes to produce high-quality, specialty vegetable and fruit-b",
+      "enforced_excerpt": "To support these business lines, we have broad geographic processing capabilities, a diversified product offering, an established customer base for our core business and a growing customer base for our new business lines. We intend to continue broadening our business portfolio ov"
+    },
+    {
+      "clean_company": "UNIVERSAL CORP /VA/",
+      "clean_cik": "0000102037",
+      "clean_type": "mda",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "PYXUS INTERNATIONAL, INC.",
+      "nearest_enforced_cik": "0000939930",
+      "cosine": 0.804,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/102037/000010203718000012/uvv-20180331x10k.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/939930/000093993018000037/aoi-20180331x10k.htm",
+      "clean_excerpt": "We also have a third reportable segment, Other Tobacco Operations, which comprises our dark tobacco business, our oriental tobacco joint venture, and certain tobacco- and non-tobacco-related services. We generated approximately $2.0 billion in consolidated revenues and earned $17",
+      "enforced_excerpt": "To support these business lines, we have broad geographic processing capabilities, a diversified product offering, an established customer base for our core business and a growing customer base for our new business lines. We intend to continue broadening our business portfolio ov"
+    },
+    {
+      "clean_company": "UNIVERSAL CORP /VA/",
+      "clean_cik": "0000102037",
+      "clean_type": "mda",
+      "enforced_frac_top15": 1.0,
+      "nearest_enforced_company": "PYXUS INTERNATIONAL, INC.",
+      "nearest_enforced_cik": "0000939930",
+      "cosine": 0.803,
+      "clean_sec_url": "https://www.sec.gov/Archives/edgar/data/102037/000010203717000030/uvv-20170331x10k.htm",
+      "enforced_sec_url": "https://www.sec.gov/Archives/edgar/data/939930/000093993015000032/aoi-20150331x10k.htm",
+      "clean_excerpt": "We also have a third reportable segment, Other Tobacco Operations, which comprises our dark tobacco business, our oriental tobacco joint venture, and certain tobacco- and non-tobacco-related services. We generated approximately $2.1 billion in consolidated revenues and earned $18",
+      "enforced_excerpt": "Several of the large multinational cigarette manufacturers have operations throughout the world, particularly in Asia, Eastern Europe and the former Soviet Union, in order to access and penetrate the international brand cigarette markets. As cigarette manufacturers expand their g"
+    }
+  ],
+  "semantic_beats_keyword": {
+    "query_company": "OptimizeRx Corp",
+    "match_company": "PARK OHIO HOLDINGS CORP",
+    "type": "rev_rec",
+    "semantic_cosine": 0.877,
+    "lexical_jaccard": 0.159,
+    "keyword_rank_of_semantic_top1": 8982,
+    "query_excerpt": "revenue is recognized based on the selling price to customers. contracts are generally all less than one year and the primary performance obligation is delivery of messages or other forms of content,",
+    "match_excerpt": "Substantially all of the Company’s contracts have a single performance obligation to transfer products to or, in limited cases, perform services for the customer. Accordingly, the Company recognizes revenue when its obligations under the contract terms are satisfied and control t"
+  }
+}

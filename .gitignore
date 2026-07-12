@@ -1,0 +1,30 @@
+.env
+.env.*
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/embeddings/*
+!data/embeddings/.gitkeep
+node_modules/
+__pycache__/
+*.duckdb
+.DS_Store
+.vercel
+app/dist/
+app/node_modules/
+
+# Local scratch / dev artifacts — never publish
+.playwright-mcp/
+scratch_panel/
+scratch_small/
+/*.png
+/methods_panel.txt
+/panel_keys.txt
+
+# Paper drafts and Word lock files stay local
+*.docx
+~$*
+
+# Private working notes — never publish
+notes/

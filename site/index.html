@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disclosure Atlas: a semantic search research instrument for SEC disclosures</title>
+<meta name="description" content="Disclosure Atlas is a browser-based semantic search research instrument for SEC disclosures. I built this to study the relationship between how distressed companies write their disclosure notes and their financial condition.">
+<meta property="og:title" content="Disclosure Atlas">
+<meta property="og:description" content="Disclosure Atlas is a browser-based semantic search research instrument for SEC disclosures. It maps 161,469 footnotes from 3,253 public companies.">
+<meta property="og:image" content="assets/fig2_correlation_matrix.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230B0D12'/%3E%3Ccircle cx='11' cy='13' r='2.4' fill='%23E0A04A'/%3E%3Ccircle cx='21' cy='19' r='1.8' fill='%23ECF1F7'/%3E%3Ccircle cx='17' cy='9' r='1.2' fill='%23ECF1F7'/%3E%3Ccircle cx='23' cy='11' r='1' fill='%235BA4DD'/%3E%3Ccircle cx='9' cy='22' r='1.4' fill='%23ECF1F7'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c1917; --ink-2:#44403c; --ink-3:#78716c;
+    --bg:#fdfcfa; --surface:#f7f5f2; --border:#e7e2dc; --border-soft:#efebe6;
+    --accent:#92400e; --accent-soft:#b45309;
+    --serif:"Crimson Pro",Georgia,serif;
+    --sans:"Atkinson Hyperlegible",-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:72px}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none!important} }
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;
+       -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:var(--accent);text-decoration:none;transition:color .18s ease}
+  a:hover{color:var(--accent-soft);text-decoration:underline}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+  /* ---------- top nav ---------- */
+  .nav{position:sticky;top:0;z-index:50;background:rgba(253,252,250,.92);backdrop-filter:blur(8px);
+       border-bottom:1px solid var(--border-soft)}
+  .nav-inner{max-width:820px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:26px;height:52px}
+  .nav-brand{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--ink);letter-spacing:.01em}
+  .nav-brand:hover{text-decoration:none;color:var(--ink)}
+  .nav-links{display:flex;gap:22px;margin-left:auto}
+  .nav-links a{color:var(--ink-2);font-size:14.5px}
+  .nav-links a:hover{color:var(--ink);text-decoration:none}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+
+  /* ---------- header ---------- */
+  header{padding:64px 0 8px;text-align:center}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(42px,7vw,60px);line-height:1.05;letter-spacing:-.015em}
+  .subtitle{font-family:var(--serif);font-style:italic;font-size:clamp(18px,2.8vw,23px);color:var(--ink-2);
+            margin:14px auto 0;max-width:640px;line-height:1.4}
+  .author{margin-top:20px;font-size:16.5px;color:var(--ink-2)}
+  .author b{color:var(--ink);font-weight:700}
+  .affil{font-size:15px;color:var(--ink-3);margin-top:2px}
+  .wpdate{font-size:14px;color:var(--ink-3);margin-top:10px}
+
+  /* ---------- button row ---------- */
+  .btn-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:28px 0 8px}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:999px;
+       padding:9px 20px;font-size:15px;font-weight:400;line-height:1;cursor:pointer;border:1px solid var(--ink);
+       transition:background .18s ease,transform .12s ease}
+  .btn:hover{background:#33302c;color:#fff;text-decoration:none}
+  .btn:active{transform:scale(.97)}
+  .btn svg{width:15px;height:15px;flex:none}
+  .btn.alt{background:transparent;color:var(--ink);border:1px solid var(--border)}
+  .btn.alt:hover{background:var(--surface);color:var(--ink)}
+
+  /* ---------- figures ---------- */
+  figure{margin:34px 0}
+  .shot{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--border);
+        box-shadow:0 1px 2px rgba(28,25,23,.05),0 10px 28px -14px rgba(28,25,23,.14);background:#fff;padding:10px}
+  figcaption{font-size:14.5px;color:var(--ink-3);margin-top:12px;line-height:1.55;text-align:left;
+             max-width:700px;margin-left:auto;margin-right:auto}
+  figcaption b{color:var(--ink-2);font-weight:700}
+
+  /* ---------- sections ---------- */
+  section{padding:26px 0}
+  h2{font-family:var(--serif);font-weight:600;font-size:31px;letter-spacing:-.01em;margin-bottom:14px}
+  h3{font-family:var(--serif);font-weight:600;font-size:22px;margin:26px 0 8px}
+  p{margin-bottom:14px;color:var(--ink-2)}
+  p strong{color:var(--ink)}
+  .rule{border:none;border-top:1px solid var(--border-soft);margin:26px 0 6px}
+  .tldr{font-size:17.5px;line-height:1.7;color:var(--ink-2);background:var(--surface);
+        border:1px solid var(--border-soft);border-radius:12px;padding:22px 26px;margin:26px 0 6px}
+  .tldr b{color:var(--ink)}
+  .abstract p{text-align:left;hyphens:auto}
+  ul{margin:0 0 14px 22px;color:var(--ink-2)}
+  li{margin-bottom:8px}
+  li::marker{color:var(--ink-3)}
+  .num{font-family:var(--mono);font-size:.92em;color:var(--ink)}
+
+  /* ---------- build note ---------- */
+  .built{border:1px solid var(--border);border-radius:12px;padding:24px 26px;background:var(--surface);margin-top:8px}
+  .built p:last-child{margin-bottom:0}
+
+  /* ---------- citation ---------- */
+  .bib-wrap{position:relative;margin-top:6px}
+  pre.bib{font-family:var(--mono);font-size:13px;line-height:1.6;background:#0b0d12;color:#d7dde5;
+          border-radius:10px;padding:22px 24px;overflow-x:auto;white-space:pre}
+  .copy-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.08);color:#d7dde5;
+            border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:6px 12px;font-family:var(--sans);
+            font-size:12.5px;cursor:pointer;transition:background .18s ease}
+  .copy-btn:hover{background:rgba(255,255,255,.16)}
+
+  footer{border-top:1px solid var(--border-soft);margin-top:56px;padding:30px 0 44px;
+         font-size:14px;color:var(--ink-3);text-align:center}
+  footer p{margin-bottom:6px;color:var(--ink-3)}
+
+  @media(max-width:600px){
+    .nav-brand{display:none}
+    .nav-inner{gap:0;justify-content:center} .nav-links{margin:0 auto;gap:16px} .nav-links a{font-size:13.5px}
+    header{padding:44px 0 4px}
+    .tldr{padding:18px 20px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Page sections">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top">Disclosure&nbsp;Atlas</a>
+    <div class="nav-links">
+      <a href="#abstract">Abstract</a>
+      <a href="#figures">Figures</a>
+      <a href="#methodology">Methodology</a>
+      <a href="#results">Results</a>
+      <a href="#citation">Citation</a>
+    </div>
+  </div>
+</nav>
+
+<header id="top" class="wrap">
+  <h1>Disclosure Atlas</h1>
+  <p class="subtitle">Disclosure Notes Relation to Financial Quality Metrics in Going-Concern Companies: Evidence of Non-Association</p>
+  <p class="author"><b>Joshua Munger</b></p>
+  <p class="affil">University of Missouri, School of Accountancy</p>
+  <p class="wpdate">Working paper - June 2026</p>
+
+  <div class="btn-row">
+    <a class="btn" href="disclosure_atlas_paper.pdf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Paper</a>
+    <a class="btn" href="https://github.com/SimplyDose/disclosure-atlas">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.7 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.1 11.1 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.27 5.67.41.36.78 1.06.78 2.14v3.17c0 .3.2.67.8.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+      Code</a>
+    <a class="btn" href="https://disclosure-atlas.vercel.app">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      App</a>
+    <a class="btn alt" href="#methodology">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Methods</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="overview">
+    <p style="margin-top:26px">Disclosure Atlas is a browser-based semantic search research instrument for SEC disclosures.
+      I built this to study the relationship between how distressed companies write their disclosure notes and their
+      financial condition. It maps <span class="num">161,469</span> footnotes from <span class="num">3,253</span> public
+      companies and allows you to search by meaning and compute financial quality scores at scale. To test my findings,
+      I built a systematic screening framework and ran hundreds of pre-registered tests, and implemented safeguards to
+      prevent false discoveries and p-hacking, including:</p>
+    <ul>
+      <li>mandatory corrections</li>
+      <li>locking in the tests before running them</li>
+      <li>reporting every result</li>
+    </ul>
+
+    <p class="tldr"><b>What I found.</b> My findings suggest that among companies issued a going-concern warning, the way
+      they write their disclosures has no meaningful relationship to their financial-quality measures. This was tested
+      rigorously with 460 tests, only 3 of which survived, and none involved the financial scores. Overall, this paper
+      suggests disclosure language reflects the standardized conventions public companies follow rather than their
+      financial condition.</p>
+  </section>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <div class="abstract">
+      <p>Does a company&rsquo;s writing style and form indicate problems in its financial statements? My original study
+      broadly examined this potential association between several disclosure note types and financial quality signals
+      and found a null. I decided to dive deeper into these disclosure notes and focus specifically on going concern
+      companies, as these distressed companies would most likely indicate any correlation between writing style and
+      indications of financial issues. I built a research instrument that aggregated 161,469 footnotes from 3,253 public
+      companies to aid in my study and analysis of this question. This tool measures the disclosures&rsquo;
+      distinctiveness compared to other companies and the complexity of their language. These measures are then compared
+      to the Dechow F-Score and Beneish M-Score to assess their relation to a company&rsquo;s financial condition and
+      potential manipulation risk. The study found no association between the way companies write their financial
+      disclosures and their financial condition. To ensure the null wasn&rsquo;t something I overlooked, I conducted a
+      systematic screening of 460 unique tests across all subgroups and measures and applied FDR and Bonferroni
+      statistical corrections for the extensive number of tests. Of the 3 associations that survived (&rho; &le; 0.16),
+      they were essentially meaningless. Overall, this study suggests even companies in distress don&rsquo;t reflect
+      their financial conditions in their disclosure notes. This research instrument was built using Claude Code and
+      reflects AI&rsquo;s ability to enhance and accelerate the research process by enabling data aggregation, testing,
+      and review at scale, while emphasizing the importance of proper safeguards when using AI to prevent false
+      discoveries and maintain data integrity.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="figures">
+    <h2>Figures</h2>
+    <p>These four figures come straight from the paper, with my captions as written. Each one is regenerated from the
+      real data by the replication code in the repository.</p>
+
+    <figure>
+      <img class="shot" src="assets/fig1_score_coverage.png" width="1806" height="613"
+           alt="Bar chart of financial score coverage: 1,120 of 4,186 company-years have a Beneish M-Score and 1,323 have a Dechow F-Score.">
+      <figcaption><b>Figure 1.</b> Financial score coverage of the going-concern cohort (N = 4,186 company-years).
+        For the Beneish M-Score, only 1,120 company-years (26.8%) and 1,323 company-years (31.6%) for the Dechow F-Score
+        had enough data to compute their respective scores.</figcaption>
+    </figure>
+
+    <figure>
+      <img class="shot" src="assets/fig2_correlation_matrix.png" width="1265" height="1033" loading="lazy"
+           alt="Correlation matrix of the four principal measures with shading proportional to correlation strength.">
+      <figcaption><b>Figure 2.</b> Correlation matrix visualization. Spearman rank correlations among principal measures
+        shown graphically, all shading is proportional to |&rho;|.</figcaption>
+    </figure>
+
+    <figure>
+      <img class="shot" src="assets/fig3_screen_rho_distribution.png" width="1680" height="920" loading="lazy"
+           alt="Histogram of Spearman correlations across all 460 tests with the three FDR survivors marked by triangles.">
+      <figcaption><b>Figure 3.</b> Distribution of Spearman &rho; across all 460 tests. This displays the spread of the
+        Spearman &rho; values across all 460 tests in the systematic screening (Table 4). The 3 FDR survivors are
+        indicated via triangles. All of which reflect the same distinctiveness-TATA association (&rho; = 0.11 to 0.16).
+        The dashed line marks &rho; = 0. All extreme values are from small subgroups and did not survive the
+        correction.</figcaption>
+    </figure>
+
+    <figure>
+      <img class="shot" src="assets/fig4_firm_level_forest.png" width="2375" height="868" loading="lazy"
+           alt="Forest plot of firm-level Spearman correlations with 95 percent confidence intervals.">
+      <figcaption><b>Figure 4.</b> Firm-level Spearman correlations with 95% confidence intervals. Displays Spearman
+        correlations on company level with their 95% confidence intervals, these were discovered using the bootstrap
+        with 4,000 resamples on per company medians (see Section 5.5). The filled in black squares are the disclosure
+        and financial pairs. The circles are within family pairs. As you can see the four disclosure and financial pairs
+        cross zero, meanwhile the Dechow and Beneish interval doesn&rsquo;t.</figcaption>
+    </figure>
+  </section>
+
+  <hr class="rule">
+
+  <section id="methodology">
+    <h2>Methodology</h2>
+
+    <h3>Data</h3>
+    <p>The corpus is <span class="num">161,469</span> disclosure footnotes drawn and ingested from the SEC EDGAR filing
+      system, covering <span class="num">3,253</span> U.S. public companies across 6 disclosure types. The going-concern
+      cohort is <span class="num">4,186</span> company-years from <span class="num">1,373</span> companies, restricted
+      to 2010-2026. Of the 4,186 company-years, only a subset can compute the Dechow F-Score (1,323 company-years,
+      ~31.6%) and the Beneish M-Score (1,120 company-years, ~26.8%). These going concern companies frequently have gaps
+      in their reporting and overall incomplete financial statements. The most distressed companies are the ones that
+      these standard screens can&rsquo;t even compute.</p>
+
+    <h3>Measures</h3>
+    <p>Language was analyzed for readability and distinctiveness through two measures. Readability was calculated for
+      the disclosure notes through the Gunning Fog Index. Distinctiveness was assessed by embedding each footnote with
+      bge-small-en-v1.5, a pretrained embedding model (384 dimensions, L2-normalized), computing the average embedding
+      for each peer group, and measuring the cosine distance of each footnote from that average. No model was trained
+      for this project. The financial quality measures are the Dechow F-Score and the Beneish M-Score, computed from
+      SEC XBRL financials. Both models are screens, not verdicts, and this study treats them as such.</p>
+
+    <h3>Statistics</h3>
+    <p>A well-known characteristic of the Dechow and Beneish models is that near-zero denominators in their component
+      ratios cause extreme outliers. Because of this, I used medians, IQR, Spearman rank correlations, and Wilcoxon
+      rank-sum tests rather than means, standard deviations, and Pearson correlations. Rank-based methods rely on the
+      order of values, so they are not impacted by extreme outliers.</p>
+
+    <h3>The systematic screen</h3>
+    <p>I developed a systematic screen to find any associations that show up in specific subgroups, rather than only
+      using one test. The screen pairs every financial and disclosure measure across all subgroups (industry, entire
+      cohort, enforcement status, and 5-year buckets). The tests were enumerated through a deterministic rule, and there
+      were <span class="num">460</span> total tests. Every test in the family is reported. Each screening is recorded
+      with a hash that marks what is being tested and when the test was conducted, to prevent secretly adding, removing,
+      or reframing tests after seeing the outcome. Two corrections are mandatory across all tests: the
+      Benjamini&ndash;Hochberg FDR and the Bonferroni. These safeguards are intended to make selective reporting a
+      deliberate act rather than a default.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section id="results">
+    <h2>Results</h2>
+    <p>Within going-concern companies, disclosure form and financial quality signals are not associated. Here is what
+      the numbers show:</p>
+    <ul>
+      <li>The disclosures are dense and standardized. The median Gunning Fog Index is <span class="num">19.6</span>,
+        which reflects about a graduate-level reading level. The median distinctiveness is <span class="num">0.115</span>
+        with an IQR of 0.060, so these disclosures are fairly similar to their peers.</li>
+      <li>Every association between disclosure form and the financial scores is negligible. Readability with Dechow
+        (&rho; = 0.03), with Beneish (&rho; = 0.02). Distinctiveness with Dechow (&rho; = &minus;0.03), with Beneish
+        (&rho; = 0.06). Two associations were nominally significant at the five percent level, Dechow with Beneish
+        (&rho; = 0.10, p = 0.002) and distinctiveness with Beneish (&rho; = 0.06, p = 0.045). Both of which did not
+        survive the mandatory correction measures.</li>
+      <li>Going concern companies with a history of SEC enforcement are practically indistinguishable from those not
+        enforced. The enforced subsample is only 179 company-years and 57 firms, so these results are suggestive rather
+        than conclusive.</li>
+      <li>Of the <span class="num">460</span> tests in the systematic screen, three survived the FDR correction and only
+        one survived the Bonferroni. The largest survivor was &rho; = 0.155. All three reflect one association between
+        distinctiveness and one of the eight Beneish ratios (total accruals over total assets). It appears in nested
+        subgroups, it carries the opposite direction in the full corpus, and no surviving association involves the
+        composite Dechow and Beneish screens.</li>
+      <li>The non-association gets stronger at the company level. Readability with Dechow (&rho; = 0.01, p = 0.83),
+        with Beneish (&rho; = 0.02, p = 0.62). Distinctiveness with Dechow (&rho; = 0.002, p = 0.97), with Beneish
+        (&rho; = 0.05, p = 0.26).</li>
+    </ul>
+    <p>My findings suggest that financial disclosure form is so standardized that it doesn&rsquo;t reflect a
+      company&rsquo;s specific financial reality, but rather displays companies&rsquo; general professional conventions
+      of disclosure norms and the legal templates that they follow. These claims are bound by the focus on structural
+      language properties (readability and distinctiveness) rather than semantic content.</p>
+
+    <div class="built">
+      <h3 style="margin-top:0">How it was built</h3>
+      <p>I built Disclosure Atlas with Claude Code (the tool, pipeline, database, systematic screener, and analysis).
+        I planned and directed the research design, cohort definitions, and measure choices, and interpreted the
+        results. Because AI can hide errors, I verified and computed the values separately and checked them with third
+        party libraries. Financial scores were recomputed from the raw inputs with zero mismatches (11,717 Dechow and
+        31,391 Beneish company-years). A standalone evaluation harness in the
+        <a href="https://github.com/SimplyDose/disclosure-atlas">repository</a> re-derives the core results with
+        independently written code. See the AI-Use Disclosure in the paper for the full details.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="citation">
+    <h2>Citation</h2>
+    <p>If you build on the paper or the tool, cite it like this:</p>
+    <div class="bib-wrap">
+      <pre class="bib" id="bibtex">@unpublished{munger2026disclosure,
+  author = {Munger, Joshua},
+  title  = {Disclosure Notes Relation to Financial Quality Metrics
+            in Going-Concern Companies: Evidence of Non-Association},
+  note   = {Working paper, University of Missouri,
+            School of Accountancy},
+  year   = {2026},
+  month  = {June},
+  url    = {https://simplydose.app/disclosure-atlas}
+}</pre>
+      <button class="copy-btn" id="copyBib" aria-label="Copy BibTeX to clipboard">Copy</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Joshua Munger · University of Missouri, School of Accountancy · <a href="mailto:joshuamunger@outlook.com">joshuamunger@outlook.com</a></p>
+    <p>Code is released under the <a href="https://github.com/SimplyDose/disclosure-atlas/blob/main/LICENSE">MIT License</a>.
+       All of the underlying data comes from public SEC EDGAR filings.</p>
+    <p>Page design adapted from the <a href="https://aion-search.github.io">AION-Search project page</a> (CC BY-SA).</p>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('copyBib').addEventListener('click', function () {
+    var btn = this;
+    navigator.clipboard.writeText(document.getElementById('bibtex').textContent).then(function () {
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 1800);
+    });
+  });
+</script>
+</body>
+</html>

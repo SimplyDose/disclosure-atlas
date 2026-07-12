@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Disclosure Atlas · a star chart of the public markets</title>
+<meta name="description" content="Disclosure Atlas is a browser-based semantic search research instrument for SEC disclosures. It maps 161,469 footnotes from 3,253 public companies and allows you to search by meaning." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23060708'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%235BA4DD'/%3E%3Ccircle cx='25' cy='9' r='1.6' fill='%23E0A04A'/%3E%3Ccircle cx='8' cy='22' r='1.4' fill='%238A97A8'/%3E%3Ccircle cx='23' cy='23' r='1.2' fill='%238A97A8'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+<div id="root">
+  <canvas id="cv"></canvas>
+
+  <!-- node tooltip -->
+  <div id="tip" class="tip">
+    <div id="tipName" class="tip-name"></div>
+    <div id="tipMeta" class="tip-meta mono"></div>
+  </div>
+
+  <!-- STATUS BAR (dense terminal header) -->
+  <div class="statusbar">
+    <div class="sb-brand">
+      <span class="sb-dot"></span>
+      <span class="mono sb-name">DISCLOSURE ATLAS</span>
+      <span class="mono sb-ver">OBSERVATORY · v1</span>
+    </div>
+    <div class="sb-stats">
+      <span class="sb-stat mono"><b id="statTotal">—</b> DISCLOSURES MAPPED</span>
+      <span class="sb-stat sb-amber mono"><b id="statEnforced">—</b> WITH ENFORCEMENT HISTORY</span>
+      <span class="sb-stat mono"><b id="statTypes">6</b> FOOTNOTE TYPES</span>
+    </div>
+    <div class="sb-spacer"></div>
+    <div class="sb-fn">
+      <button id="compareBtn" class="sb-key" type="button">COMPARE&nbsp;▸</button>
+      <button id="shortlistBtn" class="sb-key" type="button">SHORTLIST&nbsp;(<span id="shortlistCount">0</span>)&nbsp;▸</button>
+      <button id="aboutBtn" class="sb-key" type="button">METHODOLOGY&nbsp;▸</button>
+    </div>
+  </div>
+
+  <!-- FILTER STRIP -->
+  <div class="filters" id="filters" aria-label="Filters">
+    <span class="mono filter-eyebrow">FILTER</span>
+    <select id="typeSel" class="mono select" aria-label="Footnote type">
+      <option value="all">All types</option>
+      <option value="0">Revenue recognition</option>
+      <option value="1">Going concern</option>
+      <option value="2">Related-party</option>
+      <option value="3">Critical audit matters</option>
+      <option value="4">MD&amp;A</option>
+      <option value="5">Risk factors</option>
+    </select>
+    <select id="industry" class="mono select" aria-label="Industry"><option value="">All industries</option></select>
+    <select id="cxSel" class="mono select" aria-label="Complexity relative to industry peers" title="Gunning Fog complexity relative to the company's SIC-industry median (descriptive, not a risk measure)">
+      <option value="">Complexity: all</option>
+      <option value="below">Below industry median</option>
+      <option value="near">Near industry median</option>
+      <option value="above">Above industry median</option>
+    </select>
+    <select id="dxSel" class="mono select" aria-label="Distinctiveness relative to industry peers" title="How unusual the disclosure language is vs same-industry, same-type peers (descriptive measure of language unusualness, not a risk measure)">
+      <option value="">Distinctiveness: all</option>
+      <option value="typical">Typical for industry</option>
+      <option value="distinctive">Distinctive vs industry</option>
+      <option value="highly">Highly distinctive</option>
+    </select>
+    <select id="scoreSel" class="mono select" aria-label="Financial-quality screen (Beneish / Dechow)" title="Filter by the published academic financial-quality screens for the disclosure's fiscal year (Beneish M-Score 1999, Dechow F-Score 2011). Screens, not verdicts.">
+      <option value="">Financials: all</option>
+      <option value="scored">Has a financial score</option>
+      <option value="mflag">M-Score above threshold</option>
+      <option value="fhigh">F-Score above unconditional</option>
+    </select>
+    <span class="year-range mono" title="Filter by 10-K filing year. View the map as of a year, or a filing-year window">
+      <select id="yearFrom" class="mono select" aria-label="From filing year"></select>
+      <span class="year-dash">-</span>
+      <select id="yearTo" class="mono select" aria-label="To filing year"></select>
+    </span>
+    <label class="slider-wrap mono" title="Minimum cosine similarity for highlighted links">
+      <span>SIM ≥ <span id="simVal">0.00</span></span>
+      <input id="simSlider" type="range" min="0" max="0.98" step="0.01" value="0" aria-label="Similarity threshold" />
+    </label>
+    <button id="enfToggle" class="seg-btn mono enf-toggle" type="button" aria-pressed="false">⬤ ENFORCED ONLY</button>
+    <button id="bulkCsv" class="seg-btn mono bulk-csv" type="button" title="Export the current filtered set as CSV">↓ CSV <span id="bulkCount" class="mono"></span></button>
+    <button id="bulkXlsx" class="seg-btn mono bulk-csv" type="button" title="Export the current filtered set as Excel (.xlsx)">↓ XLSX</button>
+    <button id="cohortBtn" class="seg-btn mono" type="button" title="Cohort analysis: aggregate statistics across both pillars for the current filtered set">▤ ANALYZE COHORT</button>
+    <button id="changesBtn" class="seg-btn mono" type="button" title="Disclosure shifts: rank the largest year-over-year changes in disclosure language across the current filtered set">⇌ DISCLOSURE SHIFTS</button>
+    <button id="intersectBtn" class="seg-btn mono" type="button" title="Descriptive intersection: companies that are descriptively unusual on multiple independent measures at once (starting points for investigation, not a risk score)">⊕ INTERSECT</button>
+    <button id="tableBtn" class="seg-btn mono" type="button" title="Data table: the analysis-ready company-year panel for the current filtered set as a sortable grid (a live preview of exactly what the panel .zip exports, with descriptive measures only and no risk score)">▦ DATA TABLE</button>
+    <button id="table1Btn" class="seg-btn mono" type="button" title="Table 1: publication-style descriptive statistics (N, mean, median, SD, min, p25, p75, max) for each measure over the current filtered cohort. Descriptive only">Σ TABLE 1 · DESCRIPTIVES</button>
+    <button id="corrBtn" class="seg-btn mono" type="button" title="Correlation matrix: pairwise Pearson/Spearman correlations across the numeric measures over the current cohort (company-year unit). Descriptive association, not causal">⊞ CORRELATIONS</button>
+    <button id="screenBtn" class="seg-btn mono" type="button" title="Systematic screen: define the test family before any results, then every test is run and reported with mandatory Bonferroni and FDR corrections. Survivors are candidates for confirmation on independent data, never findings">⌗ SYSTEMATIC SCREEN</button>
+    <button id="shareBtn" class="seg-btn mono" type="button" title="Share this cohort: capture the full active filter set as a link that reconstructs the exact sample on load (for collaboration, robustness checks, and referee reproducibility)">⧉ SHARE COHORT</button>
+    <button id="resetBtn" class="link-btn mono" type="button">reset</button>
+  </div>
+
+  <!-- HERO OVERLAY -->
+  <div class="hero" id="hero">
+    <div class="hero-rule">
+      <div class="hero-eyebrow">
+        <span class="hero-tick"></span>
+        <span class="mono">A STAR CHART OF THE PUBLIC MARKETS</span>
+      </div>
+      <h1 class="hero-h1">Every footnote,<br />a point of light.</h1>
+      <p class="hero-p">161,469 disclosure footnotes from 3,253 public companies, placed by how their language
+        resembles one another. Companies with SEC enforcement history appear in
+        <span class="amber">amber</span>. That is context about the company, not a verdict.</p>
+      <div class="hero-divider"></div>
+      <div class="search">
+        <span class="mono search-icon">⌕</span>
+        <input id="search" class="mono search-input" type="text" placeholder="company, CIK, or footnote type" autocomplete="off" />
+        <button id="searchBtn" class="mono search-go" type="button">ENTER ↵</button>
+      </div>
+      <div class="hero-presets">
+        <span class="mono presets-label" id="presetsLabel">Select a point, or try</span>
+        <button class="preset mono" data-preset="going_concern" type="button">Going concern</button>
+        <button class="preset mono" data-preset="rev_rec" type="button">Revenue recognition</button>
+        <button class="preset mono" data-preset="featured" type="button">A featured resemblance</button>
+      </div>
+      <button id="pasteOpen" class="paste-cta" type="button">
+        <span class="mono paste-cta-key">¶</span>
+        <span class="paste-cta-text">
+          <span class="paste-cta-title">Paste your own footnote</span>
+          <span class="mono paste-cta-sub">embeds in your browser · finds its nearest neighbors · $0</span>
+        </span>
+        <span class="mono paste-cta-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM-LEFT READOUT (finding mode) -->
+  <div class="readout mono" id="readout">
+    <div class="readout-label">VIEWPORT</div>
+    <div class="readout-1">region · <span id="clusterLabel" class="ink">—</span></div>
+    <div class="readout-2"><span id="neighborCount">0</span> neighbors illuminated</div>
+  </div>
+
+  <!-- FINDING PANEL -->
+  <!-- DISCLOSURE DRIFT control bar (shown while tracing a company's drift over time) -->
+  <div class="drift-bar" id="driftBar" hidden aria-label="Disclosure drift over time">
+    <div class="drift-head">
+      <div class="drift-title mono" id="driftTitle"></div>
+      <button id="driftClose" class="icon-btn mono" type="button" aria-label="Close drift">✕</button>
+    </div>
+    <div class="drift-sub mono" id="driftSub"></div>
+    <div class="drift-controls">
+      <button id="driftPlay" class="act-btn mono" type="button" aria-label="Play or pause drift">❚❚</button>
+      <input id="driftScrub" class="drift-scrub" type="range" min="0" max="100" value="0" aria-label="Scrub through filing years" />
+      <span id="driftYear" class="drift-year mono"></span>
+    </div>
+    <div class="drift-caveat mono" id="driftCaveat"></div>
+  </div>
+
+  <aside class="panel" id="panel" aria-label="Finding panel">
+    <div id="panelResize" class="panel-resize" role="separator" aria-orientation="vertical" aria-label="Resize finding panel (drag, or arrow keys)" tabindex="0"></div>
+    <div class="panel-head">
+      <div class="mono panel-title">FINDING</div>
+      <button id="panelClose" class="icon-btn mono" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </aside>
+
+  <!-- PASTE OVERLAY -->
+  <div class="modal" id="pasteModal" role="dialog" aria-modal="true" aria-label="Paste a disclosure">
+    <div class="modal-card">
+      <div class="panel-head">
+        <div class="mono panel-title">PASTE A DISCLOSURE</div>
+        <button id="pasteClose" class="icon-btn mono" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-pad">
+        <p class="modal-help">Paste a revenue-recognition or going-concern footnote. It is embedded
+          <strong>in your browser</strong> with the same pretrained bge-small model used to build the map. No text
+          leaves your machine and there is no API call. Its nearest neighbors in the population show up below.</p>
+        <textarea id="pasteText" class="paste-area mono" rows="7" placeholder="Paste footnote text here…"></textarea>
+        <div class="modal-actions">
+          <span id="pasteStatus" class="mono modal-status"></span>
+          <button id="pasteRun" class="btn-primary mono" type="button">FIND NEIGHBORS</button>
+        </div>
+        <p class="mono modal-fineprint">In-browser embedding approximates the build-time index, so neighbors are indicative.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- METHODOLOGY OVERLAY -->
+  <div class="modal" id="aboutModal" role="dialog" aria-modal="true" aria-label="Methodology">
+    <div class="modal-card">
+      <div class="panel-head">
+        <div class="mono panel-title">METHODOLOGY</div>
+        <button id="aboutClose" class="icon-btn mono" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-pad" id="aboutBody"></div>
+    </div>
+  </div>
+
+  <!-- COMPARE TWO DISCLOSURES -->
+  <div class="modal" id="compareModal" role="dialog" aria-modal="true" aria-label="Compare two disclosures">
+    <div class="modal-card">
+      <div class="panel-head">
+        <div class="mono panel-title">COMPARE TWO DISCLOSURES</div>
+        <button id="compareClose" class="icon-btn mono" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-pad">
+        <p class="modal-help">Paste two footnotes. Both are embedded <strong>in your browser</strong> with the pretrained
+          bge-small model, and their cosine similarity shows up below. This measures resemblance of disclosure language.
+          It is not a claim about either source.</p>
+        <div class="compare-grid">
+          <textarea id="cmpA" class="paste-area mono" rows="6" placeholder="Disclosure A…"></textarea>
+          <textarea id="cmpB" class="paste-area mono" rows="6" placeholder="Disclosure B…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <span id="cmpStatus" class="mono modal-status"></span>
+          <button id="cmpRun" class="btn-primary mono" type="button">COMPARE</button>
+        </div>
+        <div id="cmpResult" class="compare-result" hidden>
+          <div class="cmp-score-row">
+            <div class="score-label mono">COSINE SIMILARITY</div>
+            <div id="cmpScore" class="score-big mono">0.0000</div>
+          </div>
+          <div id="cmpBar" class="cmp-bar"><div id="cmpBarFill" class="cmp-bar-fill"></div></div>
+          <p id="cmpReading" class="mono modal-fineprint"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHORTLIST -->
+  <div class="modal" id="shortlistModal" role="dialog" aria-modal="true" aria-label="Shortlist">
+    <div class="modal-card">
+      <div class="panel-head">
+        <div class="mono panel-title">SHORTLIST</div>
+        <button id="shortlistClose" class="icon-btn mono" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-pad">
+        <p class="modal-help">Disclosures you've pinned across searches, your working set. It is stored only in this browser.
+          Export the combined set for your own analysis.</p>
+        <div class="modal-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button id="slCsv" class="act-btn mono" type="button">↓ CSV</button>
+          <button id="slXlsx" class="act-btn mono" type="button">↓ XLSX</button>
+          <button id="slClear" class="act-btn mono" type="button">clear all</button>
+          <span id="slStatus" class="mono act-toast"></span>
+        </div>
+        <div id="shortlistBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPANY PROFILE — unified two-pillar company view -->
+  <div class="modal" id="profileModal" role="dialog" aria-modal="true" aria-label="Company profile">
+    <div class="modal-card profile-card">
+      <div class="modal-pad" id="profileBody"></div>
+    </div>
+  </div>
+
+  <!-- COHORT / BATCH ANALYSIS — aggregate statistics over the current filter set -->
+  <div class="modal" id="cohortModal" role="dialog" aria-modal="true" aria-label="Cohort analysis">
+    <div class="modal-card cohort-card">
+      <div id="cohortBody"></div>
+    </div>
+  </div>
+
+  <!-- DISCLOSURE SHIFTS — ranked year-over-year disclosure-language change -->
+  <div class="modal" id="changesModal" role="dialog" aria-modal="true" aria-label="Disclosure shifts">
+    <div class="modal-card cohort-card">
+      <div id="changesBody"></div>
+    </div>
+  </div>
+
+  <!-- DESCRIPTIVE INTERSECTION — companies unusual on multiple independent descriptive measures -->
+  <div class="modal" id="intersectModal" role="dialog" aria-modal="true" aria-label="Descriptive intersection">
+    <div class="modal-card cohort-card">
+      <div id="intersectBody"></div>
+    </div>
+  </div>
+
+  <!-- DATA TABLE — the analysis-ready company-year panel as a sortable, virtualized grid -->
+  <div class="modal" id="tableModal" role="dialog" aria-modal="true" aria-label="Data table">
+    <div class="modal-card table-card">
+      <div id="tableBody"></div>
+    </div>
+  </div>
+
+  <!-- SHARE COHORT — capture the active filter set as a reproducible shareable link -->
+  <div class="modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Share cohort">
+    <div class="modal-card share-card">
+      <div id="shareBody"></div>
+    </div>
+  </div>
+
+  <!-- CORRELATION MATRIX — pairwise correlations across measures for the active cohort -->
+  <div class="modal" id="corrModal" role="dialog" aria-modal="true" aria-label="Correlation matrix">
+    <div class="modal-card cohort-card">
+      <div id="corrBody"></div>
+    </div>
+  </div>
+
+  <!-- TABLE 1 — publication-style descriptive statistics for the active cohort -->
+  <div class="modal" id="table1Modal" role="dialog" aria-modal="true" aria-label="Table 1: descriptive statistics">
+    <div class="modal-card cohort-card">
+      <div id="table1Body"></div>
+    </div>
+  </div>
+
+  <!-- SYSTEMATIC SCREEN — pre-registered multiple-hypothesis screening (full family, mandatory correction) -->
+  <div class="modal" id="screenModal" role="dialog" aria-modal="true" aria-label="Systematic screen: pre-registered multiple-hypothesis screening">
+    <div class="modal-card cohort-card screen-card">
+      <div id="screenBody"></div>
+    </div>
+  </div>
+
+  <!-- COPY IMPORT CODE — ready-to-run Stata/R/Python loaders for this cohort's panel.csv -->
+  <div class="modal" id="importModal" role="dialog" aria-modal="true" aria-label="Copy import code">
+    <div class="modal-card cohort-card">
+      <div id="importBody"></div>
+    </div>
+  </div>
+
+  <!-- METHODS & REPRODUCIBILITY — comprehensive citable resource + download -->
+  <div class="modal" id="methodsModal" role="dialog" aria-modal="true" aria-label="Methods and reproducibility">
+    <div class="modal-card methods-card">
+      <div class="mb-head">
+        <div class="mb-title mono">METHODS &amp; REPRODUCIBILITY</div>
+        <div class="mb-head-actions">
+          <button id="methodsDl" class="act-btn mono" type="button" title="Download the full methods &amp; reproducibility bundle (Markdown)">↓ DOWNLOAD (.md)</button>
+          <button id="methodsClose" class="icon-btn mono" type="button" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div class="modal-pad mb-body" id="methodsBody"></div>
+    </div>
+  </div>
+
+  <!-- LIST-VIEW FALLBACK (no canvas / WebGL) -->
+  <div class="fallback" id="listFallback" hidden>
+    <div class="fallback-inner">
+      <h2 class="mono">DISCLOSURE ATLAS · LIST VIEW</h2>
+      <p>Your browser can't render the constellation canvas. Here are the disclosures and their
+        nearest cross-company neighbors.</p>
+      <div id="fallbackList"></div>
+    </div>
+  </div>
+</div>
+
+<noscript><div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#060708;color:#9AA7B6;font-family:monospace;padding:24px;text-align:center;">Disclosure Atlas needs JavaScript to render the constellation. The underlying data is static and links to real SEC filings.</div></noscript>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

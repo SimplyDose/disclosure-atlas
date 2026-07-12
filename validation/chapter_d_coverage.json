@@ -1,0 +1,25 @@
+{
+  "models_version": "beneish1999-8var; dechow2011-model1",
+  "financials_companies": 3126,
+  "financials_company_years": 34677,
+  "candidate_company_years_with_prior": 31391,
+  "beneish_m_scored": 12691,
+  "beneish_flagged_gt_threshold": 1521,
+  "dechow_fscore_scored": 11717,
+  "neither_model_scored": 15219,
+  "beneish_insufficient_reasons": {
+    "insufficient: missing core balance/income inputs (t or t-1)": 18330,
+    "insufficient: no income (continuing ops or net) for TATA": 69,
+    "insufficient: non-positive sales (t or t-1)": 92,
+    "insufficient: zero prior soft-asset ratio (AQI undefined)": 145,
+    "insufficient: zero prior receivables (DSRI undefined)": 55,
+    "insufficient: zero current gross margin (GMI undefined)": 9
+  },
+  "dechow_insufficient_reasons": {
+    "insufficient: missing core inputs (t or t-1)": 18272,
+    "insufficient: needs t-2 total_assets & receivables (avg-assets ROA / prior cash sales)": 1388,
+    "insufficient: zero prior cash sales (delta undefined)": 14
+  },
+  "enforced_companies_with_beneish": 59,
+  "note": "Beneish needs t & t-1; Dechow Model 1 needs t, t-1 & t-2. No score = recorded reason, never fabricated. Components stored for every computed score."
+}
