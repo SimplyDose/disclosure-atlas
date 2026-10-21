@@ -11,6 +11,34 @@ are inside `/eval` (`measurements.json`).
 
 ## Run it
 
+### Offline financial checks
+
+From the repository root, use Python 3.14.5 and the pinned minimal environment:
+
+```bash
+python3.14 -m venv .venv-offline
+.venv-offline/bin/python -m pip install -r eval/requirements-offline.txt
+.venv-offline/bin/python eval/run_eval.py --offline
+```
+
+This selects only the Beneish and Dechow known-answer/edge-case classes (19 tests at
+introduction), importing the actual production formulas. DuckDB is needed at import
+time, but no database, dataset, embedding model, credential or network call is used by
+these tests, and no measurements are written. Installation requires package-registry
+access. Exit 0 means this selection passed; nonzero means failure. This is the same
+check used by `.github/workflows/offline-checks.yml`.
+
+The workflow also runs `.venv-offline/bin/python -m unittest discover -s eval -p test_offline_runner.py -v`.
+This uses a disposable source-only fixture, blocks database and network connections,
+and proves an intentionally wrong expected answer produces exit 1. The original
+fixtures remain unchanged.
+
+This selection does not replace stored-score comparisons, search checks, empirical
+replication, frontend QA or the MCP harness. Use the complete project environment below
+for those; `requirements-offline.txt` intentionally does not install their dependencies.
+
+### Full and fast research evaluation
+
 ```bash
 .venv/bin/python eval/run_eval.py           # everything (~1–3 min incl. model/bundle load)
 .venv/bin/python eval/run_eval.py --fast    # skip the supervised AUC probes (slowest part)
@@ -19,8 +47,7 @@ are inside `/eval` (`measurements.json`).
 Exit code 0 = all tests pass. Measured numbers land in `eval/measurements.json`.
 Plain-English results and caveats: **`eval/REPORT.md`**.
 
-Framework: Python stdlib `unittest` (no pytest in the project venv; the repo's own tests are
-plain scripts, so the harness stays dependency-free). Requires the project `.venv`
+Framework: Python stdlib `unittest` (no separate test framework). Full evaluation requires the project `.venv`
 (numpy, scikit-learn, duckdb, fastembed — all already installed). The footnote-search suite
 needs the bge-small-en-v1.5 ONNX model in the local HuggingFace cache; the first-ever run
 downloads it (~130 MB), after which everything is offline.
