@@ -15,8 +15,34 @@ My findings suggest that among companies issued a going-concern warning, the way
 - `paper/`: the working paper, plus the replication code that regenerates every table (`final_tables.py`) and every figure (`make_figures.py`) from the real data. The exact cohort is archived in `gc_cohort_2010_2026.csv`.
 - `app/`: the source code for the Disclosure Atlas app itself. It's a static site. The embeddings run in your browser, and there is no backend.
 - `ingestion/`: the pipeline that pulls the filings from SEC EDGAR and extracts the footnotes.
-- `eval/`: the evaluation harness. It re-derives the core results with independently written code and checks them against the published numbers. All 43 tests pass (see `eval/REPORT.md`).
+- `eval/`: the evaluation harness. It re-derives the core results with independently written code and checks them against the published numbers. The recorded full evaluation is in `eval/REPORT.md`; use the commands below for fresh checks of the current checkout.
 - `docs/`: architecture notes, the build log, and the audits.
+
+## Start here for development
+
+Read [AGENTS.md](AGENTS.md) for shared project boundaries and the scope-document gap.
+The current frontend is **Vite + vanilla JavaScript with static data and browser-side
+embeddings**; Supabase/pgvector is not part of its current runtime. See
+[app/README.md](app/README.md) for frontend setup and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+for the build-time pipeline.
+
+For the data-independent financial checks, use Python 3.14.5 in a separate environment:
+
+```bash
+python3.14 -m venv .venv-offline
+.venv-offline/bin/python -m pip install -r eval/requirements-offline.txt
+.venv-offline/bin/python eval/run_eval.py --offline
+```
+
+The same command runs in the proposed [offline workflow](.github/workflows/offline-checks.yml).
+It tests production formulas against known answers and edge cases, without datasets,
+model downloads, credentials, SEC calls or paid calls. Dependency installation needs
+package-registry access; the check itself works offline. It does not certify the full
+study, frontend or MCP server. See [eval/README.md](eval/README.md) for the full evaluation.
+
+Deployments are separate owner-approved operations. Before publishing a branch or
+merging, verify all connected hosting triggers, including Vercel and GitHub Pages;
+an unchanged Pages workflow alone does not establish deployment isolation.
 
 ## How it works
 

@@ -13,7 +13,7 @@ Disclosure Atlas is a **build-time-heavy, runtime-light** system. All expensive 
                   ├─► fetch_filings.py                 static site (Vercel CDN)
   AAER sources ───┘        │                                  │
                            ▼                            ┌──────┴───────┐
-                   extract_footnotes.py                 │ React/Vite   │
+                   extract_footnotes.py                 │ vanilla JS / │
                            │                            │  app         │
                            ▼                            │              │
                     DuckDB (structured)                 │  bge-small   │ ◄─ in-browser
@@ -44,7 +44,7 @@ Disclosure Atlas is a **build-time-heavy, runtime-light** system. All expensive 
 - **aaer_backtest.py** — measures whether enforced companies cluster; outputs a pass/fail against the threshold defined in VALIDATION_PLAN.md.
 
 ### App (`app/`)
-- React + Vite + Tailwind. `search/` holds the in-browser bge-small loader + nearest-neighbor logic. `findings/` renders finding cards + the static explanation layer. `design-system/` holds tokens from DESIGN_SYSTEM.md. The constellation is the hero component.
+- Vite + vanilla JavaScript, Canvas 2D and DOM overlays. Current entrypoint and search/map logic live under `app/src/`; the browser loads static data from `app/public/data/` and loads its embedding model lazily. See `app/README.md` for the implemented stack and data bundle. The constellation is the hero component; no React, Tailwind or Supabase runtime is required by the current frontend.
 
 ## Why no server / no Supabase in v1
 - Data is read-only reference data; there are no user writes, no auth.

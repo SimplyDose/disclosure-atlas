@@ -1,0 +1,2 @@
+# Import dependency of the production scoring module; no database is opened by --offline.
+duckdb==1.5.4
