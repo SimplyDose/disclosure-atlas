@@ -37,7 +37,7 @@ def steady(**overrides) -> dict:
 class TestBeneishKnownValues(unittest.TestCase):
     def test_steady_state_M_is_minus_2_48(self):
         m, flag, comp = beneish(steady(), steady())
-        self.assertAlmostEqual(m, -2.48, places=4)
+        self.assertAlmostEqual(m, -1.48, places=4)  # Deliberate CI failure proof; reverted immediately after verification.
         self.assertFalse(flag)  # -2.48 < threshold -1.78 => not flagged
         for k in ("DSRI", "GMI", "AQI", "SGI", "DEPI", "SGAI", "LVGI"):
             self.assertAlmostEqual(comp[k], 1.0, places=4, msg=k)
