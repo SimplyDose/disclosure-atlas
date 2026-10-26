@@ -54,6 +54,8 @@ WHERE f.footnote_type = 'going_concern'
 | Distinct company-years | **2,643** (2 footnotes have NULL `period_of_report` and drop out of the CY count) |
 | Company-years intersecting the 75 collapsed keys | **8** |
 | **Final cohort: company-years after collapsed-key exclusion** | **2,635** |
+| Distinct companies after collapsed-key exclusion (rechecked October 25, 2026) | **921** |
+| Paper-window intersection, 2010–2026 (rechecked October 25, 2026) | **2,572 company-years / 896 companies** |
 
 The 8 excluded collapsed keys: `0000862861|2022`, `0001060822|2022`, `0001074828|2025`, `0001083446|2017`, `0001498372|2014`, `0001498382|2024`, `0001510775|2012`, `0002025878|2025`.
 
@@ -84,4 +86,4 @@ Deterministic, reproducible sampling: `ORDER BY md5(f.footnote_id) LIMIT 10` ove
 
 ## 6. Suggested methods-section language
 
-> Going-concern disclosures were identified by Disclosure Atlas's rule-based extractor (inline-XBRL going-concern text-block tags, 13%; keyword heuristic requiring both "going concern" and substantial-doubt language, 87%; no supervised classifier). To increase precision, we restricted the sample to excerpts containing "substantial doubt" and excluded (a) descriptions of the going-concern accounting standard (ASU 2014-15 / ASC 205-40) and (b) conditional risk-factor phrasings, then removed 8 company-years affected by a documented fiscal-calendar key collision. The final cohort comprises 4,614 excerpts across 924 companies and 2,635 company-years. A manual review of the raw label estimated ~70–80% footnote-level precision, rising to ~90%+ in the cleaned sample (10-excerpt spot check; see limitations).
+> Going-concern disclosures were identified by Disclosure Atlas's rule-based extractor (inline-XBRL going-concern text-block tags, 13%; keyword heuristic requiring both "going concern" and substantial-doubt language, 87%; no supervised classifier). The cleaned excerpt set contains 4,614 excerpts from 924 companies before company-year exclusions. Requiring a valid period-of-report key and removing 8 collapsed keys leaves 2,635 company-years from 921 companies across all available years, or 2,572 company-years from 896 companies within 2010–2026. Label precision has not been established by a representative hand-labeled validation sample; the small historical spot checks are described above.

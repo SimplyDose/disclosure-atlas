@@ -47,7 +47,7 @@ export class ImportCode {
           <ul class="ic-note-list mono">
             <li>Merge on CIK: Stata <code>merge m:1 cik using …</code> · R <code>left_join(by="cik")</code> · pandas <code>.merge(on="cik")</code> (match <code>cik,fiscal_year</code> for a company-year join).</li>
             <li>CIK → GVKEY via the Compustat <code>company</code> table / CCM link; GVKEY → PERMNO via the CRSP/Compustat Merged link (respect LINKDT/LINKENDDT, LINKPRIM=P).</li>
-            <li>Point-in-time: <code>filing_date</code> is when each measure became public. Align return/market data to it to avoid look-ahead bias.</li>
+            <li><code>filing_date</code> dates the source filing. Distinctiveness uses the full corpus snapshot; financial inputs may include later revisions. Filing-date alignment alone does not make this panel point-in-time.</li>
           </ul>
           <p class="ic-note-p ic-note-foot">The full <code>JOINING.md</code> (with these recipes), the data dictionary (<code>codebook.md</code>), and all three import scripts travel inside the panel <b>.zip</b>.</p>
         </div>

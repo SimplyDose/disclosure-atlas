@@ -134,7 +134,8 @@
   <p class="subtitle">Disclosure Notes Relation to Financial Quality Metrics in Going-Concern Companies: Evidence of Non-Association</p>
   <p class="author"><b>Joshua Munger</b></p>
   <p class="affil">University of Missouri, School of Accountancy</p>
-  <p class="wpdate">Working paper - June 2026</p>
+  <p class="wpdate">Working paper · June 2026 · Project page revised October 2026</p>
+  <p><a href="https://github.com/SimplyDose/disclosure-atlas/blob/main/paper/RESEARCH_NOTE_2026-10-25.md">October 25 research note and reproducible results</a></p>
 
   <div class="btn-row">
     <a class="btn" href="disclosure_atlas_paper.pdf">
@@ -146,54 +147,36 @@
     <a class="btn" href="https://disclosure-atlas.vercel.app">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       App</a>
-    <a class="btn alt" href="#methodology">
+    <a class="btn alt" href="https://github.com/SimplyDose/disclosure-atlas/tree/main/examples">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      Methods</a>
+      Reproduce</a>
   </div>
 </header>
 
 <main class="wrap">
 
   <section id="overview">
-    <p style="margin-top:26px">Disclosure Atlas is a browser-based semantic search research instrument for SEC disclosures.
-      I built this to study the relationship between how distressed companies write their disclosure notes and their
-      financial condition. It maps <span class="num">161,469</span> footnotes from <span class="num">3,253</span> public
-      companies and allows you to search by meaning and compute financial quality scores at scale. To test my findings,
-      I built a systematic screening framework and ran hundreds of pre-registered tests, and implemented safeguards to
-      prevent false discoveries and p-hacking, including:</p>
-    <ul>
-      <li>mandatory corrections</li>
-      <li>locking in the tests before running them</li>
-      <li>reporting every result</li>
-    </ul>
-
-    <p class="tldr"><b>What I found.</b> My findings suggest that among companies issued a going-concern warning, the way
-      they write their disclosures has no meaningful relationship to their financial-quality measures. This was tested
-      rigorously with 460 tests, only 3 of which survived, and none involved the financial scores. Overall, this paper
-      suggests disclosure language reflects the standardized conventions public companies follow rather than their
-      financial condition.</p>
+    <p style="margin-top:26px">Disclosure Atlas connects <span class="num">161,469</span> SEC disclosure excerpts
+      from <span class="num">3,253</span> companies to their source filings. The instrument supports semantic search,
+      company-year panels and a fully reported multiple-testing screen.</p>
+    <p class="tldr"><b>Research question.</b> How are disclosure readability and linguistic distinctiveness related to
+      published financial-screen measures among companies with going-concern language? In the paper's
+      <span class="num">4,186</span> company-years, estimated correlations with the composite Beneish and Dechow
+      scores are small; none survives the specified multiple-testing correction.</p>
   </section>
 
   <section id="abstract">
     <h2>Abstract</h2>
     <div class="abstract">
-      <p>Does a company&rsquo;s writing style and form indicate problems in its financial statements? My original study
-      broadly examined this potential association between several disclosure note types and financial quality signals
-      and found a null. I decided to dive deeper into these disclosure notes and focus specifically on going concern
-      companies, as these distressed companies would most likely indicate any correlation between writing style and
-      indications of financial issues. I built a research instrument that aggregated 161,469 footnotes from 3,253 public
-      companies to aid in my study and analysis of this question. This tool measures the disclosures&rsquo;
-      distinctiveness compared to other companies and the complexity of their language. These measures are then compared
-      to the Dechow F-Score and Beneish M-Score to assess their relation to a company&rsquo;s financial condition and
-      potential manipulation risk. The study found no association between the way companies write their financial
-      disclosures and their financial condition. To ensure the null wasn&rsquo;t something I overlooked, I conducted a
-      systematic screening of 460 unique tests across all subgroups and measures and applied FDR and Bonferroni
-      statistical corrections for the extensive number of tests. Of the 3 associations that survived (&rho; &le; 0.16),
-      they were essentially meaningless. Overall, this study suggests even companies in distress don&rsquo;t reflect
-      their financial conditions in their disclosure notes. This research instrument was built using Claude Code and
-      reflects AI&rsquo;s ability to enhance and accelerate the research process by enabling data aggregation, testing,
-      and review at scale, while emphasizing the importance of proper safeguards when using AI to prevent false
-      discoveries and maintain data integrity.</p>
+      <p>This working paper examines readability and embedding-based linguistic distinctiveness in a
+      disclosure-defined going-concern cohort of 4,186 company-years from 1,373 public companies. The two language
+      measures are compared with the Beneish M-Score and Dechow F-Score, calculated from SEC XBRL inputs. Financial
+      scores are available for 1,120 and 1,323 company-years respectively. The four principal language/score
+      correlations range from &minus;0.028 to 0.060. Across an exploratory family of 460 eligible tests, three nested
+      distinctiveness/TATA associations survive Benjamini&ndash;Hochberg correction and one survives Bonferroni;
+      none involves either composite financial score. The paper reports firm-level robustness checks and the
+      sample-selection and measurement assumptions. The accompanying instrument supports source-linked comparisons,
+      cohort exports and reproducible analysis.</p>
     </div>
   </section>
 
@@ -266,11 +249,11 @@
 
     <figure>
       <img class="shot" src="assets/app_screen_define.png" width="1440" height="900" loading="lazy"
-           alt="The systematic screen's define view, showing the full test family enumerated and registered before any result is computed.">
-      <figcaption><b>The systematic screen.</b> The full test family is enumerated and registered before any result
+           alt="The systematic screen's define view, showing the full test family recorded locally before calculation.">
+      <figcaption><b>The systematic screen.</b> The full test family is enumerated and recorded locally before any result
         is computed. The Bonferroni and Benjamini&ndash;Hochberg FDR corrections are mandatory, every test is
         reported, and excluded tests are listed rather than silently dropped. Here the tool enumerates 12,308
-        candidate tests over the full corpus and 2,890 enter the family. The paper's committed family was 460 tests
+        candidate tests over the full corpus and 2,890 enter the family. The paper's reported family was 460 tests
         within the going-concern cohort.</figcaption>
     </figure>
   </section>
@@ -285,9 +268,7 @@
       system, covering <span class="num">3,253</span> U.S. public companies across 6 disclosure types. The going-concern
       cohort is <span class="num">4,186</span> company-years from <span class="num">1,373</span> companies, restricted
       to 2010-2026. Of the 4,186 company-years, only a subset can compute the Dechow F-Score (1,323 company-years,
-      ~31.6%) and the Beneish M-Score (1,120 company-years, ~26.8%). These going concern companies frequently have gaps
-      in their reporting and overall incomplete financial statements. The most distressed companies are the ones that
-      these standard screens can&rsquo;t even compute.</p>
+      ~31.6%) and the Beneish M-Score (1,120 company-years, ~26.8%). Score coverage depends on available model inputs; estimates therefore describe the score-available observations.</p>
 
     <h3>Measures</h3>
     <p>Language was analyzed for readability and distinctiveness through two measures. Readability was calculated for
@@ -300,61 +281,57 @@
     <h3>Statistics</h3>
     <p>A well-known characteristic of the Dechow and Beneish models is that near-zero denominators in their component
       ratios cause extreme outliers. Because of this, I used medians, IQR, Spearman rank correlations, and Wilcoxon
-      rank-sum tests rather than means, standard deviations, and Pearson correlations. Rank-based methods rely on the
-      order of values, so they are not impacted by extreme outliers.</p>
+      rank-sum tests rather than means, standard deviations, and Pearson correlations. Rank-based methods use the order of values, reducing sensitivity to extreme magnitudes.</p>
 
     <h3>The systematic screen</h3>
     <p>I developed a systematic screen to find any associations that show up in specific subgroups, rather than only
       using one test. The screen pairs every financial and disclosure measure across all subgroups (industry, entire
       cohort, enforcement status, and 5-year buckets). The tests were enumerated through a deterministic rule, and there
-      were <span class="num">460</span> total tests. Every test in the family is reported. Each screening is recorded
-      with a hash that marks what is being tested and when the test was conducted, to prevent secretly adding, removing,
-      or reframing tests after seeing the outcome. Two corrections are mandatory across all tests: the
-      Benjamini&ndash;Hochberg FDR and the Bonferroni. These safeguards are intended to make selective reporting a
-      deliberate act rather than a default.</p>
+      were <span class="num">460</span> total tests. Every test in the family is reported. Each run records its specification and full test family
+      with a local timestamp and SHA-256 hash before computing results. Two corrections are mandatory across all tests: the
+      Benjamini&ndash;Hochberg FDR and the Bonferroni. The complete family and excluded candidates are reported with their inclusion rules.</p>
   </section>
 
   <hr class="rule">
 
   <section id="results">
     <h2>Results</h2>
-    <p>Within going-concern companies, disclosure form and financial quality signals are not associated. Here is what
-      the numbers show:</p>
+    <p>In this going-concern cohort, the measured language features have small estimated associations with the two
+      composite financial scores:</p>
     <ul>
       <li>The disclosures are dense and standardized. The median Gunning Fog Index is <span class="num">19.6</span>,
         which reflects about a graduate-level reading level. The median distinctiveness is <span class="num">0.115</span>
         with an IQR of 0.060, so these disclosures are fairly similar to their peers.</li>
-      <li>Every association between disclosure form and the financial scores is negligible. Readability with Dechow
+      <li>The four principal language/financial-score correlations are small. Readability with Dechow
         (&rho; = 0.03), with Beneish (&rho; = 0.02). Distinctiveness with Dechow (&rho; = &minus;0.03), with Beneish
-        (&rho; = 0.06). Two associations were nominally significant at the five percent level, Dechow with Beneish
-        (&rho; = 0.10, p = 0.002) and distinctiveness with Beneish (&rho; = 0.06, p = 0.045). Both of which did not
-        survive the mandatory correction measures.</li>
-      <li>Going concern companies with a history of SEC enforcement are practically indistinguishable from those not
-        enforced. The enforced subsample is only 179 company-years and 57 firms, so these results are suggestive rather
+        (&rho; = 0.06). The distinctiveness/Beneish association is nominally significant
+        (p = 0.045) but does not survive correction in the language/financial-measure family.
+        The Dechow/Beneish correlation (&rho; = 0.10, p = 0.002) is a separate score-to-score
+        comparison outside that family; no adjusted significance claim is made for it.</li>
+      <li>Estimated differences by SEC enforcement history are small in this sample. The enforced subsample is only 179 company-years and 57 firms, so these results are suggestive rather
         than conclusive.</li>
       <li>Of the <span class="num">460</span> tests in the systematic screen, three survived the FDR correction and only
         one survived the Bonferroni. The largest survivor was &rho; = 0.155. All three reflect one association between
         distinctiveness and one of the eight Beneish ratios (total accruals over total assets). It appears in nested
         subgroups, it carries the opposite direction in the full corpus, and no surviving association involves the
         composite Dechow and Beneish screens.</li>
-      <li>The non-association gets stronger at the company level. Readability with Dechow (&rho; = 0.01, p = 0.83),
+      <li>Firm-median estimates are also small. Readability with Dechow (&rho; = 0.01, p = 0.83),
         with Beneish (&rho; = 0.02, p = 0.62). Distinctiveness with Dechow (&rho; = 0.002, p = 0.97), with Beneish
         (&rho; = 0.05, p = 0.26).</li>
     </ul>
-    <p>My findings suggest that financial disclosure form is so standardized that it doesn&rsquo;t reflect a
-      company&rsquo;s specific financial reality, but rather displays companies&rsquo; general professional conventions
-      of disclosure norms and the legal templates that they follow. These claims are bound by the focus on structural
-      language properties (readability and distinctiveness) rather than semantic content.</p>
+    <p>The results concern readability and embedding-based distinctiveness in the score-available sample.
+      Standardized reporting language is one possible interpretation, rather than an identified explanation.
+      The paper examines the measurement choices, missing scores and firm-level robustness.</p>
 
     <div class="built">
-      <h3 style="margin-top:0">How it was built</h3>
-      <p>I built Disclosure Atlas with Claude Code (the tool, pipeline, database, systematic screener, and analysis).
-        I planned and directed the research design, cohort definitions, and measure choices, and interpreted the
-        results. Because AI can hide errors, I verified and computed the values separately and checked them with third
-        party libraries. Financial scores were recomputed from the raw inputs with zero mismatches (11,717 Dechow and
-        31,391 Beneish company-years). A standalone evaluation harness in the
-        <a href="https://github.com/SimplyDose/disclosure-atlas">repository</a> re-derives the core results with
-        independently written code. See the AI-Use Disclosure in the paper for the full details.</p>
+      <h3 style="margin-top:0">Research contribution</h3>
+      <p>I defined the research question, cohort rules, measures and analysis plan; interpreted the results; and
+        directed the instrument's implementation and verification. The paper documents implementation assistance
+        and the checks performed.</p>
+      <p><a href="https://github.com/SimplyDose/disclosure-atlas/tree/main/examples">Reproduce the four principal correlations</a>
+        from the included bundle, or read the
+        <a href="https://github.com/SimplyDose/disclosure-atlas/blob/main/docs/REPRODUCIBILITY.md">reproduction guide</a>
+        for the formula checks and original-data workflow.</p>
     </div>
   </section>
 

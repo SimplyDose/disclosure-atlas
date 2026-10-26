@@ -1,9 +1,9 @@
-// SYSTEMATIC SCREEN — pre-registered multiple-hypothesis screening across the two pillars.
+// SYSTEMATIC SCREEN — locally recorded multiple-hypothesis screening across the two pillars.
 // A researcher defines a test family (disclosure measures × financial measures × subgroups) BEFORE
 // any result is computed; the tool enumerates the full family, records the registration (timestamp,
 // cohort, spec, SHA-256), runs every test, and reports ALL of them with mandatory Bonferroni and
 // Benjamini-Hochberg FDR correction. The integrity safeguards ARE the feature and cannot be disabled:
-//   1. pre-registration before results   2. full reporting (every test, always — sorting only, no
+//   1. local specification recorded before results   2. full reporting (every test, always — sorting only, no
 //   filtering/hiding)   3. corrections always applied   4. survivors labeled "candidate association —
 //   warrants confirmation on independent data", never "finding"   5. effect size (Spearman ρ) beside
 //   every p   6. rank-based (robust) methods, per the documented heavy outliers in the financial
@@ -101,7 +101,7 @@ export function ibeta(a, b, x) {
   return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
 }
 // Two-sided p for Spearman ρ via the t approximation, t = ρ√((n−2)/(1−ρ²)), df = n−2
-// (the same approximation scipy.stats.spearmanr and R cor.test use for samples of this size).
+// (the Student-t approximation used by scipy.stats.spearmanr; R cor.test may use other methods).
 export function spearmanP(rho, n) {
   if (rho == null || n < 4) return null;
   const df = n - 2, r2 = rho * rho;
@@ -177,15 +177,13 @@ export async function runFamily(included, onProgress) {
 }
 
 // ── honesty copy (travels with the panel, the export, and the methods doc) ─────────────────────
-const HONESTY = [
-  "EXPLORATORY, NOT CONFIRMATORY. A systematic screen generates candidate hypotheses. It does not establish findings. Anything that survives correction here is a starting point that warrants confirmation on independent data (a different sample, a different period, or a pre-registered replication). It is never a conclusion by itself.",
-  "THE FULL FAMILY IS ALWAYS REPORTED. Every pre-registered test appears in the table and in the export, including every non-survivor, and the corrections are computed across the whole family. Sorting reorders the table. Nothing is filtered out or hidden. These safeguards make selective reporting a deliberate act rather than a default.",
-  "SIGNIFICANCE IS NOT IMPORTANCE. At large N, associations too small to matter (|ρ| under ~0.1) can clear any correction. Read the effect size (Spearman ρ) first, the q-value second. An interesting effect size that does not survive correction is not evidence of anything either. This family was searched, so uncorrected p-values overstate the evidence.",
-  "ONE SCREEN, ONE CORRECTION. The correction covers the tests registered in THIS screen. Running further screens and reporting only the interesting one silently rebuilds the multiple-comparisons problem this tool corrects for. Report every screen you ran. The registration record (timestamp and SHA-256) exists so that a reported screen can be shown to be the screen that was run.",
-  "DESCRIPTIVE, NOT CAUSAL. These are rank associations between measures in this sample. They are sample-specific, not causal, and not a statement about any individual company. The financial measures are published academic screens (Beneish 1999; Dechow et al. 2011) with known limitations, and this dataset cannot re-validate them. I use rank-based (Spearman) statistics throughout because the financial screens contain documented extreme outliers that invalidate mean and Pearson-based statistics.",
+const METHOD_NOTE = [
+  "EXPLORATORY ANALYSIS. Surviving associations are hypotheses for confirmation on independent data. Spearman ρ describes effect size; statistical significance alone does not establish practical importance or causality.",
+  "COMPLETE FAMILY. Every included test is reported and both Bonferroni and Benjamini–Hochberg FDR corrections cover the full family. Sorting changes the order only. Report all screens you run, since corrections do not cover unreported additional screens.",
+  "LOCAL ANALYSIS RECORD. The browser records the specification, timestamp and SHA-256 before calculating results. This local record is not an externally archived preregistration. Published financial-screening models and their sample-coverage limits are documented in Methods.",
 ].join("\n\n");
 
-const INTRO = "Define the test family first: which measure pairs, over which subgroups. The tool enumerates every resulting pre-specified test, records the registration, runs the complete family, and reports every test with mandatory Bonferroni and Benjamini–Hochberg (FDR) corrections. Nothing runs until you register, and everything is reported after.";
+const INTRO = "Choose the measures and subgroups. The browser records the complete test family before calculating results, then reports every test with mandatory Bonferroni and Benjamini–Hochberg FDR corrections.";
 
 const fmtP = (p) => p == null ? "—" : p < 1e-4 ? "<0.0001" : p.toFixed(4);
 const fmtR = (r) => r == null ? "—" : (r >= 0 ? "+" : "−") + Math.abs(r).toFixed(3);
@@ -247,7 +245,7 @@ export class Screen {
     // once registered, the header pins the REGISTERED cohort (the record), not the live filter state
     const def = (this.state === "registered" && this.registration) ? this.registration.spec.cohort
       : (this.describe ? this.describe() : "all disclosures");
-    return `<div class="ch-head"><div class="ch-head-main"><div class="ch-title mono">SYSTEMATIC SCREEN · PRE-REGISTERED</div><div class="ch-def mono">${esc(def)}</div></div><button class="icon-btn mono" data-sc="close" type="button" aria-label="Close">✕</button></div>`;
+    return `<div class="ch-head"><div class="ch-head-main"><div class="ch-title mono">SYSTEMATIC SCREEN · RECORDED FAMILY</div><div class="ch-def mono">${esc(def)}</div></div><button class="icon-btn mono" data-sc="close" type="button" aria-label="Close">✕</button></div>`;
   }
 
   // ── DEFINE state ──
@@ -267,7 +265,7 @@ export class Screen {
         <div class="caveat sc-intro">${esc(INTRO)}</div>
         <div class="sc-grid">
           ${box("DISCLOSURE MEASURES", MEASURES_A, this.selA, "a", "descriptive language properties")}
-          ${box("FINANCIAL MEASURES", MEASURES_B, this.selB, "b", "published academic screens (Beneish 1999; Dechow et&nbsp;al. 2011). Screens, not verdicts. This dataset cannot re-validate them")}
+          ${box("FINANCIAL MEASURES", MEASURES_B, this.selB, "b", "Beneish (1999) and Dechow et&nbsp;al. (2011) scores and component measures; definitions and coverage in Methodology")}
           <div class="sc-col">
             <div class="sc-col-h mono">SUBGROUPS</div>
             <label class="sc-check mono is-locked"><input type="checkbox" checked disabled> Full cohort <span class="sc-lock">always included</span></label>
@@ -276,7 +274,7 @@ export class Screen {
           </div>
         </div>
         <div class="sc-prereg">
-          <div class="sc-col-h mono">PRE-REGISTRATION · THE FULL TEST FAMILY, ENUMERATED BEFORE ANY RESULT</div>
+          <div class="sc-col-h mono">ANALYSIS RECORD · FULL FAMILY BEFORE RESULTS</div>
           <div class="sc-prereg-line mono">${nPairs.toLocaleString()} measure pairs × ${en.nSubgroups.toLocaleString()} subgroups → <b>${(en.included.length + en.excluded.length).toLocaleString()}</b> candidate tests · <b class="sc-m">${en.included.length.toLocaleString()}</b> enter the family · ${en.excluded.length.toLocaleString()} excluded by the pre-specified rule (pairwise N&nbsp;≥&nbsp;${MIN_N}, non-constant). Excluded tests are listed in the results and the export, never silently dropped</div>
           <div class="sc-prereg-line mono">method: Spearman rank correlation (two-sided) · unit: company-year · pairwise deletion, missing never zero-imputed · corrections (mandatory, across the whole family): Bonferroni AND Benjamini–Hochberg FDR · α = ${ALPHA} · every test reported</div>
           <div class="sc-actions">
@@ -284,7 +282,7 @@ export class Screen {
             <span class="act-toast mono" data-sc="toast" aria-live="polite"></span>
           </div>
         </div>
-        ${reg.length ? `<div class="sc-registry"><div class="sc-col-h mono">REGISTRATION LOG · THIS BROWSER</div>${reg.slice().reverse().map((r) => `<div class="sc-reg-row mono">${esc(r.at)} · ${r.m.toLocaleString()} tests · sha-256 ${esc(r.hash.slice(0, 16))}… · ${esc(r.cohort)}${r.outcome ? ` · ${r.outcome.fdr} survived FDR` : ""}</div>`).join("")}<div class="sc-col-note">a client-side log of screens registered in this browser, part of the record that what you report is what you ran</div></div>` : ""}
+        ${reg.length ? `<div class="sc-registry"><div class="sc-col-h mono">REGISTRATION LOG · THIS BROWSER</div>${reg.slice().reverse().map((r) => `<div class="sc-reg-row mono">${esc(r.at)} · ${r.m.toLocaleString()} tests · sha-256 ${esc(r.hash.slice(0, 16))}… · ${esc(r.cohort)}${r.outcome ? ` · ${r.outcome.fdr} survived FDR` : ""}</div>`).join("")}<div class="sc-col-note">stored in this browser; export the full record for review. This is not an externally archived preregistration</div></div>` : ""}
       </div>`;
   }
 
@@ -331,7 +329,7 @@ export class Screen {
   _renderRunning(done, total) {
     this.body.innerHTML = `${this._head()}
       <div class="sc-pad">${this._registrationHTML()}
-        <div class="caveat">running the pre-registered family… ${done.toLocaleString()} / ${total.toLocaleString()} tests</div>
+        <div class="caveat">running the recorded family… ${done.toLocaleString()} / ${total.toLocaleString()} tests</div>
       </div>`;
   }
 
@@ -380,7 +378,7 @@ export class Screen {
       <div class="sc-pad">
         ${this._registrationHTML()}
         <div class="sc-summary mono"><b>${nFdr.toLocaleString()}</b> of <b>${m.toLocaleString()}</b> tests survive FDR correction (q &lt; ${ALPHA}) · <b>${nBonf.toLocaleString()}</b> also survive Bonferroni · every one of the ${m.toLocaleString()} tests is shown below and in the export</div>
-        <div class="caveat sc-candnote">† <b>${esc(CANDIDATE_LABEL)}</b>. Exploratory screening generates hypotheses, not conclusions. Confirmation on fresh, independent data is required before any of these is more than a lead. ‡ also survives the stricter Bonferroni bound. Statistical significance ≠ practical importance: at these N, small effects clear correction, so read ρ first.</div>
+        <div class="caveat sc-candnote">† <b>${esc(CANDIDATE_LABEL)}</b>. ‡ also survives Bonferroni correction. Read Spearman ρ alongside adjusted p and q-values; surviving associations require confirmation on independent data.</div>
         <div class="sc-bar">
           <div class="sc-meta mono">sorted: ${this.sort.col ? esc(this.sort.col) + " (a view aid, all " + m.toLocaleString() + " rows remain in the table)" : "registration order (pre-specified)"}</div>
           <div class="sc-actions-r">
@@ -397,7 +395,7 @@ export class Screen {
           </table>
         </div>
         ${excl}
-        <div class="sc-honesty">${HONESTY.split("\n\n").map((p) => { const i = p.indexOf(". "); return `<p><b class="mono">${esc(p.slice(0, i + 1))}</b> ${esc(p.slice(i + 2))}</p>`; }).join("")}</div>
+        <div class="sc-honesty">${METHOD_NOTE.split("\n\n").map((p) => { const i = p.indexOf(". "); return `<p><b class="mono">${esc(p.slice(0, i + 1))}</b> ${esc(p.slice(i + 2))}</p>`; }).join("")}</div>
       </div>`;
   }
 
@@ -405,7 +403,8 @@ export class Screen {
   _csv() {
     const s = this.registration.spec;
     const L = [];
-    L.push("# Disclosure Atlas · systematic screen (pre-registered multiple-hypothesis screening)");
+    L.push("# Disclosure Atlas · systematic screen (locally recorded multiple-hypothesis screening)");
+    L.push("# record_type: local browser specification; not externally archived preregistration");
     L.push("# registered_utc: " + s.registered_utc);
     L.push("# registration_sha256: " + this.registration.hash);
     L.push("# cohort: " + s.cohort);
@@ -419,7 +418,7 @@ export class Screen {
     L.push("# m_tests: " + s.m_tests + ". This file contains all of them. Reporting a subset misrepresents the screen");
     L.push("# survivors are labeled: " + CANDIDATE_LABEL);
     L.push("# exploratory screening generates hypotheses, not conclusions; statistical significance != practical importance (read the effect size)");
-    L.push("# financial measures are published academic screens (Beneish 1999; Dechow et al. 2011) with known limitations; this dataset cannot re-validate them");
+    L.push("# financial measures follow Beneish (1999) and Dechow et al. (2011); definitions and coverage are in Methodology");
     L.push("# retrieved from https://disclosure-atlas.vercel.app");
     L.push("disclosure_measure,financial_measure,subgroup_dimension,subgroup,n,spearman_rho,p_raw,p_bonferroni,q_fdr_bh,survives_fdr_05,survives_bonferroni_05,label");
     const cell = (v) => { const t = String(v == null ? "" : v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };

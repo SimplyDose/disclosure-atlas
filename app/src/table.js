@@ -1,7 +1,7 @@
 // DATA TABLE — the analysis-ready Phase-3 PANEL rendered as a sortable, filterable, virtualized grid.
 // It is an INTERFACE to existing data: rows == buildPanel() (the exact company-year panel the .zip
 // exports), columns == PANEL_COLS, so the table is a live preview of precisely what downloads.
-// HONESTY: descriptive columns only; NO composite/risk score column; sorting by M-Score sorts a
+// METHODS: descriptive columns only; NO composite/risk score column; sorting by M-Score sorts a
 // descriptive academic screen, NOT a suspicion ranking; missing = NA (never zero); neutral styling,
 // amber = enforcement context ONLY, no alarm colors. The grid must not read as a "most suspicious" board.
 import { PANEL_COLS, buildPanel, buildPanelZip } from "./dataset.js";
@@ -50,7 +50,7 @@ const DEFAULT_VISIBLE = ["cik", "ticker", "company_name", "sic_code", "fiscal_ye
   "n_footnotes", "gunning_fog", "distinctiveness", "beneish_m", "beneish_flag", "dechow_fscore", "enforced"];
 const LS_KEY = "da_table_cols_v1";
 
-const HONESTY = "This table is a live preview of the analysis-ready company-year panel (one row per company per fiscal year), exactly what “Download this view” exports. Every column is descriptive: there is NO composite or risk score, and no “most-suspicious” ranking. The Beneish M-Score (Beneish 1999) and Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) are published, peer-reviewed academic SCREENS shown with their known limitations. Sorting by one of them simply orders a descriptive measure, it is not a suspicion ranking. This dataset cannot re-validate the screens (XBRL begins around 2009, most enforcement predates it, and enforced and clean scores do not separate in this sample), so their basis is the literature. Enforcement history is descriptive context. Missing values are NA, never zero.";
+const METHOD_NOTE = "One row per company and fiscal year, matching the exported panel. Missing values remain NA. Financial columns use the Beneish (1999) and Dechow et al. (2011) models; Methodology documents their definitions and coverage.";
 
 const fmtNum = (name, v) => {
   if (v == null || v === "" || (typeof v === "number" && !isFinite(v))) return null;
@@ -144,7 +144,7 @@ export class Table {
         </div>
       </div>
       <div class="dt-colpick" id="dtColpick" hidden></div>
-      <div class="dt-honesty caveat">${esc(HONESTY)}</div>
+      <div class="dt-honesty caveat">${esc(METHOD_NOTE)}</div>
       <div class="dt-grid">
         <div class="dt-head-wrap"><div class="dt-head mono" id="dtHead"></div></div>
         <div class="dt-bodyscroll" id="dtBody" tabindex="0"><div class="dt-sizer" id="dtSizer"><div class="dt-rows" id="dtRows"></div></div></div>

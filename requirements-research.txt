@@ -1,0 +1,7 @@
+# Full local evaluation and paper-figure environment, Python 3.14.5.
+-r examples/requirements.txt
+duckdb==1.5.4
+matplotlib==3.11.0
+scikit-learn==1.9.0
+fastembed==0.8.0
+mcp==1.28.1

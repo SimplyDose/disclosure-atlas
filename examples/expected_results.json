@@ -1,0 +1,54 @@
+{
+  "analysis": "Paper Table 2: primary going-concern cohort, pairwise-complete Spearman correlations",
+  "scope": "Versioned derived-bundle check; raw filing extraction and the 460-test screen are separate analyses",
+  "cohort": {
+    "company_years": 4186,
+    "companies": 1373,
+    "fiscal_year_min": 2010,
+    "fiscal_year_max": 2026
+  },
+  "correlations": [
+    {
+      "x": "gunning_fog",
+      "y": "beneish_m",
+      "n": 1120,
+      "rho": 0.02175507310187833,
+      "p_raw_two_sided": 0.467019482370206
+    },
+    {
+      "x": "gunning_fog",
+      "y": "dechow_fscore",
+      "n": 1323,
+      "rho": 0.0269396616783912,
+      "p_raw_two_sided": 0.3275159463015036
+    },
+    {
+      "x": "distinctiveness",
+      "y": "beneish_m",
+      "n": 1120,
+      "rho": 0.05980079876141766,
+      "p_raw_two_sided": 0.045406012627762816
+    },
+    {
+      "x": "distinctiveness",
+      "y": "dechow_fscore",
+      "n": 1323,
+      "rho": -0.028120548845400467,
+      "p_raw_two_sided": 0.3067497086568553
+    }
+  ],
+  "inference": "Raw p-values describe these four pairs; they do not apply the paper's multiple-testing correction",
+  "versions": {
+    "numpy": "2.4.6",
+    "scipy": "1.18.0"
+  },
+  "source_sha256": {
+    "paper/gc_cohort_2010_2026.csv": "ec8ebe0701120fdcb92a9af24cf9c49fe29df41e91ebccd7866138516372a79c",
+    "docs/AUDIT_2026-07-01_collapsed_company_years.csv": "aa8380233fb4dde1b91c026b155fa973e9b12923d8cc5e326f090d5b62af82dc",
+    "app/public/data/nodes.json": "5727221455ea0a7dd544a2b81706bf65f0728c5b42af2a8a608c6fa536d07d98",
+    "app/public/data/scores.json": "8c86b102e6f7623eeeadf755e5a72115d0a8f4f0b0ad42c4674bc6a22125d9b3",
+    "app/public/data/tickers.json": "c040c4cd5967cfbe3018a7d492352116432ed535f18873ab4a3860bc2510080d",
+    "app/public/data/manifest.json": "905cbfa512ce9d7517709495d742a50f247dc28c483f6e88e7c410fbfe52864f"
+  },
+  "checks": "PASS"
+}

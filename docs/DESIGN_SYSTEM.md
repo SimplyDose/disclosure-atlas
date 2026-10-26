@@ -36,7 +36,7 @@ Refined off the harsh pure-black-and-hard-borders look toward considered neutral
 --ink-primary       #ECF1F7   /* primary readout / headings */
 --ink-secondary     #AEB7C4   /* prose / secondary — LIFTED for readable body (was #9AA7B6) */
 --ink-tertiary      #8893A2   /* captions, supporting */
---ink-faint         #5E6876   /* labels, ticks, metadata */
+--ink-faint         #7D899A   /* labels, ticks, metadata; ≥4.8:1 on darkest-to-raised text surfaces */
 /* Terminal signals */
 --signal-amber      #E0A04A   /* ENFORCEMENT history / severity — semantic, never decorative (EXACT) */
 --signal-alert      #C8553D
@@ -359,10 +359,10 @@ profile, peer comparison, cohort analysis, financial pillar, methods bundle, fil
    weight 600, letter-spacing 2.5px, uppercase, `--accent-cool`. One shared rule for
    `.panel-title` / `.ch-title` / `.mb-title`.
 2. **Section / pillar header** (DISCLOSURE PILLAR · FOOTNOTE EXCERPTS · CORPUS DEFINITION …): mono,
-   10px, weight 600, letter-spacing 1.6px, uppercase, `--accent-cool`. ONE shared rule for
+   12px, weight 600, letter-spacing 1.6px, uppercase, `--accent-cool`. ONE shared rule for
    `.section-label` (finding panel) == `.pf-pillar-h` == `.ch-pillar-h` == `.mb-h`. Previously the
    finding panel's section headers were faint while the other surfaces' were cyan — now identical.
-3. **Eyebrow / caption** (QUERY · DISCLOSURE SIMILARITY · FISCAL YEAR …): mono, 9.5px, weight 500,
+3. **Eyebrow / caption** (QUERY · DISCLOSURE SIMILARITY · FISCAL YEAR …): mono, 12px, weight 500,
    letter-spacing 1.6px, uppercase, `--ink-faint`.
 
 Other consistency rules tightened in this pass:
@@ -407,9 +407,9 @@ and the file never drift. All numbers come from `manifest.corpus` / `manifest.va
 Two families. JetBrains Mono carries all **data**; IBM Plex Sans carries all **prose**, at comfortable sizes/line-heights — legibility is not sacrificed for the terminal look.
 
 - **Data / labels / headers / readouts / headline (`--mono`, `--display`, `--grotesk` = JetBrains Mono, 400/500/600/700):** all numbers, scores, CIKs, dates; every label, status/command-bar control, panel header, button; entity names + big readout numbers; and the hero banner (weight 600, `clamp(20,2.4vw,27)px`). No serif, no Space Grotesk.
-- **Running prose (`--body`): IBM Plex Sans** (400/500/600/700) — hero paragraph, footnote excerpts, Claude explanations, methodology/help text, captions. Base **13.5px / line-height 1.6**; prose blocks 12.5–13px / **1.62–1.65** for genuine readability.
+- **Running prose (`--body`): IBM Plex Sans** (400/500/600/700) — hero paragraph, footnote excerpts, comparison notes, methodology/help text, captions. Base **14px / line-height 1.6**; running prose blocks use at least 14px / **1.6–1.65**. Compact functional controls, tables and metadata use a 12px minimum; no smaller functional-text exceptions.
 
-**Deliberate type levels:** display/banner (mono 600, 20–27px) · big data readout (mono 600, 40px) · Fog (mono 600, 22px) · entity name (mono 600, 14px) · primary panel label (mono 600, 11px, +3px tracking, cyan) · prose (sans, 12.5–13.5px / 1.6+) · **tertiary label — ONE shared treatment** for every eyebrow/section label (mono 500, 9.5px, +1.6px tracking, uppercase, `--ink-faint`). Only IBM Plex Sans + JetBrains Mono are requested by the page.
+**Deliberate type levels:** display/banner (mono 600, 20–27px) · big data readout (mono 600, 40px) · Fog (mono 600, 22px) · entity name (mono 600, 14px) · primary panel label (mono 600, 12px, +3px tracking, cyan) · prose (sans, 14px / 1.6+) · **tertiary label — ONE shared treatment** for every eyebrow/section label (mono 500, 12px, +1.6px tracking, uppercase, `--ink-faint`). Only IBM Plex Sans + JetBrains Mono are requested by the page.
 
 ## Layout & structure
 
@@ -465,3 +465,7 @@ Responsive to mobile; visible keyboard focus rings (--accent-cool); `prefers-red
 ## The one-accessory-removed check
 
 Before shipping any screen: remove one decorative element. If the screen still works, it's removed for good. The map earns its richness; everything else stays austere.
+
+## Reviewer-readability refinement (October 2026)
+
+Preserve the terminal/constellation identity while keeping functional text at least 12px and running prose at least 14px. Faint text uses #7D899A, measured at 4.80:1 against the raised surface #181C25 and 5.24:1 against panel #10131A. Data tables remain compact and scroll within their own containers; no text is reduced below the floor to fit. Financial tiles stack according to available width, with wrapping labels and complete values. The mobile header uses two 38px rows; the opening console scrolls within the available space above the bottom controls.

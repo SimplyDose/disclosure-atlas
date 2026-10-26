@@ -3,7 +3,7 @@
 // max}. Units are explicit and correct: disclosure measures are FOOTNOTE-level; footnotes-per-company is
 // COMPANY-level; financial screens are COMPANY-YEAR-level (deduped — never footnote-duplicated) and read
 // from scores.json (full precision + components). Missing handled correctly: N = non-missing; zeros are
-// never imputed. HONESTY: purely descriptive summary statistics — no scores, no ranking, no judgment;
+// never imputed. METHODS: purely descriptive summary statistics — no scores, no ranking, no judgment;
 // the cited-screens + cannot-re-validate caveat travels with the financial measures. $0; reuses data.
 import { ensureScores, scoreForYear } from "./scores.js";
 import { downloadCSV } from "./exporters.js";
@@ -14,8 +14,8 @@ const DEC = ["rsst_accruals", "ch_receivables", "ch_inventory", "soft_assets", "
 const DEC_LABEL = { rsst_accruals: "RSST accruals", ch_receivables: "Δ receivables", ch_inventory: "Δ inventory", soft_assets: "Soft assets", ch_cash_sales: "Δ cash sales", ch_roa: "Δ ROA", issuance: "Issuance" };
 const STAT_COLS = ["N", "Mean", "Median", "SD", "Min", "P25", "P75", "Max"];
 
-const UNIT_NOTE = "Unit of observation per measure: disclosure-language measures (Gunning Fog complexity, distinctiveness) are summarised at the FOOTNOTE level, footnotes-per-company at the COMPANY level, and the financial screens (the Beneish M-Score and its 8 components, and the Dechow F-Score and its components) at the distinct COMPANY-YEAR level, deduplicated and never footnote-duplicated. N is the count of NON-MISSING observations for each measure. Missing values are excluded (zeros are never imputed).";
-const HONESTY = "These are purely descriptive summary statistics: no score, no ranking, no judgment about any company. The Beneish M-Score (Beneish 1999) and Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) are established, peer-reviewed academic SCREENS shown with their published limitations. This dataset cannot re-validate them (XBRL begins around 2009, most enforcement cases predate that, and enforced and clean scores do not separate in this sample), so the basis that they carry signal is the literature. This is distinct from, and consistent with, the disclosure-language null.";
+const UNIT_NOTE = "Observation units: disclosure complexity and distinctiveness use footnotes; footnotes-per-company uses companies; financial measures use distinct company-years. N counts non-missing observations for each measure. Missing values are excluded, without zero imputation.";
+const METHOD_NOTE = "Summary statistics for the active cohort. Financial measures use the Beneish (1999) and Dechow et al. (2011) models, with definitions and coverage in Methodology.";
 
 // sample (n−1) descriptive statistics with interpolated percentiles; null if empty.
 function summarize(arr) {
@@ -134,7 +134,7 @@ export class Table1 {
           </table>
         </div>
         <div class="caveat t1-note">${esc(UNIT_NOTE)}</div>
-        <div class="caveat t1-honesty">${esc(HONESTY)}</div>
+        <div class="caveat t1-honesty">${esc(METHOD_NOTE)}</div>
       </div>`;
   }
 
@@ -164,7 +164,7 @@ export class Table1 {
     lines.push("Financial-quality measures (Beneish 1999; Dechow et al. 2011)"); this.fin.forEach(add);
     return `Table 1. Descriptive statistics\nCohort: ${def}\nN = ${this.nFootnotes.toLocaleString()} footnotes; ${this.nCompanyYears.toLocaleString()} company-years; ${this.nCompanies.toLocaleString()} companies. Retrieved ${date} from Disclosure Atlas (https://disclosure-atlas.vercel.app).\n\n`
       + lines.join("\n")
-      + `\n\nNote. ${UNIT_NOTE} ${HONESTY}`;
+      + `\n\nNote. ${UNIT_NOTE} ${METHOD_NOTE}`;
   }
 
   _toast(t, msg) { if (t) { t.textContent = msg; clearTimeout(this._tt); this._tt = setTimeout(() => { t.textContent = ""; }, 2400); } }

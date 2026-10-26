@@ -3,7 +3,7 @@
 // nearest cross-company neighbors) and its financial pillar (Beneish M / Dechow F history with
 // component breakdowns on demand). Descriptive/comparative only — academic screens, never "our
 // risk score", no guilt-implying treatment. Reuses existing computed data; no new ingestion.
-import { ensureScores, companyScores, yearTilesHTML, scoreCells, SCORE_HEADERS, M_THRESHOLD } from "./scores.js";
+import { ensureScores, companyScores, yearTilesHTML, scoreCells, SCORE_HEADERS, M_THRESHOLD, PILLAR_NOTE } from "./scores.js";
 import { ensureChanges, timelineHTML } from "./changes.js";
 
 const TYPE_FULL = { 0: "Revenue recognition", 1: "Going concern", 2: "Related-party transactions", 3: "Critical audit matter", 4: "MD&A", 5: "Risk factors" };
@@ -112,7 +112,7 @@ export class Profile {
     return `<div class="pf-peer">
       <div class="pf-pillar-h mono">PEER COMPARISON · vs ${esc(ind)} · ${peerCiks.length} companies</div>
       ${rows}${finNote}
-      <div class="caveat">Each row compares this company's representative value (median across its disclosures / scored years) to the distribution of same-SIC-industry peers (band = interquartile range, tick = median, ● = this company). Position vs peers is descriptive context, not a verdict or a judgment about the company. M / F are published academic screens (Beneish 1999; Dechow, Ge, Larson &amp; Sloan 2011) with known limitations. This dataset cannot re-validate them, so their basis is the literature.</div>
+      <div class="caveat">Each row compares this company's representative value (median across its disclosures / scored years) to the distribution of same-SIC-industry peers (band = interquartile range, tick = median, ● = this company). M / F use the Beneish (1999) and Dechow et al. (2011) models; see Methodology for definitions and coverage.</div>
     </div>`;
   }
 
@@ -165,7 +165,7 @@ export class Profile {
       <div class="pf-fn-list">${discRows}</div>
       <div class="section-label mono" style="margin-top:14px">NEAREST COMPANIES BY DISCLOSURE LANGUAGE</div>
       <div class="pf-neigh-list">${neighHtml}</div>
-      <div class="caveat">Complexity (Gunning Fog) and distinctiveness are descriptive measures vs same-SIC-industry peers, not findings or judgments. "open ↗" loads the disclosure in the finding panel and locates it on the constellation.</div>
+      <div class="caveat">Complexity (Gunning Fog) and distinctiveness compare disclosure language with same-SIC-industry peers. "open ↗" locates the disclosure on the constellation and opens its source excerpt.</div>
     </div>`;
 
     // financial pillar — history + on-demand component breakdown (master/detail)
@@ -199,13 +199,13 @@ export class Profile {
     const comp = companyScores(this.cik);
     if (!comp) {
       return `<div class="pf-pillar"><div class="pf-pillar-h mono">FINANCIAL-QUALITY PILLAR</div>
-        <div class="caveat">No financial screens for this company: no SEC XBRL company-facts are available (typically a pre-XBRL, delisted, or foreign filer). No score is shown rather than a fabricated one.</div></div>`;
+        <div class="caveat">No financial screens for this company: no SEC XBRL company-facts are available (typically a pre-XBRL, delisted, or foreign filer). Scores require complete model inputs.</div></div>`;
     }
     const scored = comp.years.filter((y) => y.m != null || y.f != null);
     if (!scored.length) {
       return `<div class="pf-pillar"><div class="pf-pillar-h mono">FINANCIAL-QUALITY PILLAR</div>
-        <div class="caveat">This company has SEC financials but no company-year had sufficient inputs for either model (e.g. a financial-sector firm without COGS, or an unclassified balance sheet). No score is shown rather than a fabricated one.</div>
-        <div class="caveat fin-honesty">${esc(PILLAR_NOTE_PROFILE)}</div></div>`;
+        <div class="caveat">This company has SEC financials but no company-year had sufficient inputs for either model (e.g. a financial-sector firm without COGS, or an unclassified balance sheet). Scores require complete model inputs.</div>
+        <div class="caveat fin-honesty">${esc(PILLAR_NOTE)}</div></div>`;
     }
     if (this.selYear == null) this.selYear = scored[scored.length - 1].y;
     const rows = comp.years.map((y) => {
@@ -222,7 +222,7 @@ export class Profile {
       <div class="pf-fy-head mono"><span>YEAR</span><span class="pf-fy-mcell">BENEISH M</span><span class="pf-fy-fcell">DECHOW F</span></div>
       <div class="pf-fy-list">${rows}</div>
       <div class="pf-detail">${detail}</div>
-      <div class="caveat fin-honesty">${esc(PILLAR_NOTE_PROFILE)}</div>
+      <div class="caveat fin-honesty">${esc(PILLAR_NOTE)}</div>
     </div>`;
   }
 
@@ -246,9 +246,9 @@ export class Profile {
     return `Disclosure Atlas · company profile\n${name} (CIK ${this.cik})${sic ? " · SIC " + sic : ""}${ind ? " · " + ind : ""}\n`
       + `Disclosures: ${ns.length} footnotes across ${types.length} type(s) [${types.join(", ")}], filing years ${years.length ? years.reduce((m, v) => v < m ? v : m, Infinity) + "-" + years.reduce((m, v) => v > m ? v : m, -Infinity) : "n/a"}.\n`
       + `Financial-quality screens (published academic models, computed from SEC XBRL): Beneish M-Score for ${nM} fiscal year(s), Dechow F-Score for ${nF}.\n`
-      + (enforced ? `Enforcement history (context only, not a prediction): ${this._aaer(this.cik).map((a) => a.aaer).join(", ")}.\n` : "")
+      + (enforced ? `SEC enforcement history: ${this._aaer(this.cik).map((a) => a.aaer).join(", ")}.\n` : "")
       + `Source: SEC EDGAR · ${edgarCompany(this.cik)}\nRetrieved ${date}.\n`
-      + `Note: disclosure measures describe resemblance and readability of language. The M and F scores are the outputs of established academic screening models shown with their limitations. Screens, not verdicts, and not a claim about the company.`;
+      + `Disclosure measures describe language resemblance and readability. Beneish (1999) and Dechow et al. (2011) model definitions and coverage are documented in Methodology.`;
   }
 
   _onClick(e) {
@@ -265,6 +265,3 @@ export class Profile {
     if (act === "cite") { const t = this.body.querySelector('[data-pf="toast"]'); navigator.clipboard.writeText(this._cite()).then(() => { if (t) t.textContent = "citation copied"; setTimeout(() => { if (t) t.textContent = ""; }, 2200); }).catch(() => { if (t) t.textContent = "copy failed"; }); return; }
   }
 }
-
-// profile-specific phrasing of the financial honesty note (kept identical in substance to the panel's)
-const PILLAR_NOTE_PROFILE = "Beneish M-Score (Beneish 1999) and Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) are established, peer-reviewed academic screening models computed from reported financials, shown with their drivers and published limitations. They are screens, not verdicts, and not my judgment. This dataset cannot re-validate them (SEC XBRL begins around 2009, most enforcement cases predate that, and enforced and clean scores do not separate in this sample), so the basis that these models carry signal is the published literature, presented as such. This is distinct from, and consistent with, the disclosure-language null.";

@@ -8,6 +8,7 @@ data/embeddings/*
 !data/embeddings/.gitkeep
 node_modules/
 .venv*/
+.venv
 __pycache__/
 *.duckdb
 .DS_Store

@@ -5,7 +5,7 @@ Atlas's existing computed data (the DuckDB + JSON/Parquet bundle) as six tools a
 call. **Local build only** — not deployed to any public host; public hosting is a deliberate,
 separate step that has not been taken.
 
-- No new ingestion, no live SEC/EDGAR calls, no Claude/Anthropic API calls inside the server.
+- Uses the existing data bundle and local query encoder; no ingestion or paid API calls at runtime.
 - Query embedding is local (`fastembed` bge-small-en-v1.5, ONNX, CPU — $0), mirroring the website's encoder.
 - Holds only public research data. **No secrets**; never reads `.env` or any credential.
 - **Honesty travels with the data:** every tool returning scores / change / multi-measure data carries
@@ -26,11 +26,11 @@ separate step that has not been taken.
 ## Run (stdio)
 
 ```bash
-# from the repo root, using the project venv (deps already installed)
+# from the repo root, after installing requirements-research.txt
 .venv/bin/python mcp/server.py
 ```
 
-Wire into a local MCP client (e.g. Claude Desktop `claude_desktop_config.json`):
+Configure a local MCP client with the absolute repository path:
 
 ```json
 {
@@ -65,5 +65,7 @@ environment. `export_panel` includes `identifiers_note` + structured `join_guida
 ## Data sources (read-only)
 
 `app/public/data/{nodes,scores,neighbors,excerpts,tickers,aaer,manifest}.json` + `embeddings.bin`
-(int8, 94455×384) as the canonical computed bundle (identical to the site), and
+(int8, 161469×384) as the canonical computed bundle (identical to the site), and
 `data/processed/atlas.duckdb` (opened read-only) for enforcement detail / financials / raw text.
+
+Setup and artifact requirements: [Reproducibility](../docs/REPRODUCIBILITY.md).

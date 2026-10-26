@@ -1,4 +1,4 @@
-// Constellation canvas engine — ported from the locked Claude Design, wired to REAL data.
+// Constellation canvas engine wired to the shipped disclosure bundle.
 // Drawing/motion/aesthetic preserved exactly (nebula, polar grid, faint edges, node glow,
 // twinkle, ambient drift, weighted fly-to, vignette). Synthetic PRNG data is replaced by the
 // real UMAP nodes + real cross-company neighbors. Amber === real enforced cohort only.
@@ -21,6 +21,7 @@ export class Constellation {
     this.canvas = canvas;
     this.nodes = data.nodes;
     this.neighbors = data.neighbors; // by index: [[idx,score]...]
+    this.findings = data.findings || [];
     this.onSelect = opts.onSelect || (() => {});
     this.reduced = matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.ease = bezier(...EASE_PTS);
@@ -157,28 +158,26 @@ export class Constellation {
 
   // ---- selection: a real map node ----
   selectIndex(qi, forceMatch = null) {
-    const q = this.nodes[qi];
-    let nb = (this.neighbors[qi] || []).map(([j, s], idx) => ({ idx: j, rank: idx, score: s }));
-    let match = nb.length ? nb[0].idx : qi;
-    if (forceMatch != null && forceMatch !== qi) {
-      match = forceMatch;
-      if (!nb.some((x) => x.idx === forceMatch)) {
-        // featured match not in precomputed top-K (rare): inject with its real cosine
-        const s = this._cosineKnown(qi, forceMatch);
-        nb = [{ idx: forceMatch, rank: 0, score: s }, ...nb].slice(0, 10).map((x, i) => ({ ...x, rank: i }));
-      }
-    }
+    if (!Number.isInteger(qi) || !this.nodes[qi]) return false;
+    if (forceMatch != null && (!Number.isInteger(forceMatch) || !this.nodes[forceMatch])) return false;
+    const nb = (this.neighbors[qi] || []).map(([j, s], idx) => ({ idx: j, rank: idx, score: s }));
+    const match = forceMatch != null && forceMatch !== qi ? forceMatch : (nb[0]?.idx ?? qi);
+    // A selected comparison may be outside top-K; keep the recorded ranking intact.
     this.sel = { q: qi, match, nb, t0: performance.now(), nbSet: new Set(nb.map((x) => x.idx)) };
     this.virtual = null;
     this._flyToNode(qi);
     this.onSelect(this._finding());
+    return true;
   }
   _cosineKnown(qi, mi) {
-    // fall back to a neighbor's recorded score if present, else a conservative estimate
     const rec = (this.neighbors[qi] || []).find(([j]) => j === mi);
-    return rec ? rec[1] : 0.9;
+    if (rec && Number.isFinite(rec[1])) return rec[1];
+    const reverse = (this.neighbors[mi] || []).find(([j]) => j === qi);
+    if (reverse && Number.isFinite(reverse[1])) return reverse[1];
+    const featured = this.findings.find((f) => (f.qi === qi && f.mi === mi) || (f.qi === mi && f.mi === qi));
+    return Number.isFinite(featured?.similarity) ? featured.similarity : null;
   }
-  selectPair(qi, mi) { this.selectIndex(qi, mi); }
+  selectPair(qi, mi) { return this.selectIndex(qi, mi); }
   _flyToNode(qi) {
     const q = this.nodes[qi]; const rad = this._localRadius(qi);
     const minDim = Math.min(this.cssW, this.cssH);
@@ -190,6 +189,7 @@ export class Constellation {
 
   // ---- selection: a virtual pasted query ----
   selectVirtual(neighborList, label, excerpt) {
+    if (!neighborList.length) return false;
     // place a virtual node at the weighted centroid of its top neighbors
     let wx = 0, wy = 0, ws = 0;
     for (const [j, s] of neighborList.slice(0, 6)) { const m = this.nodes[j]; const w = Math.max(0.01, s); wx += m.x * w; wy += m.y * w; ws += w; }
@@ -206,7 +206,7 @@ export class Constellation {
     this.onSelect(this._finding());
   }
 
-  setMatch(mi) { if (!this.sel) return; this.sel.match = mi; this.onSelect(this._finding()); }
+  setMatch(mi) { if (!this.sel || !this.sel.nb.some((n) => n.idx === mi)) return false; this.sel.match = mi; this.onSelect(this._finding()); return true; }
   closeFinding() { this.sel = null; this.virtual = null; this._flyTo({ ...this.heroCam }, this.reduced ? 0 : 760); this._tip && (this._tip.style.opacity = "0"); }
 
   _finding() {
@@ -219,7 +219,8 @@ export class Constellation {
       query: q ? { idx: q.i, name: q.name, cik: q.cik, url: q.url, type: q.t, enforced: !!q.e } :
         { idx: -1, name: this.virtual.label, cik: "—", url: null, type: m.t, enforced: false, pasted: true, excerpt: this.virtual.excerpt },
       match: { idx: m.i, name: m.name, cik: m.cik, url: m.url, type: m.t, enforced: !!m.e },
-      score: best ? best.score : 0,
+      score: best ? best.score : (sel.virtual ? null : this._cosineKnown(sel.q, sel.match)),
+      matchRank: best ? best.rank + 1 : null,
       typeLabel: TYPE_LABEL[m.t],
       neighbors: nb.map((x) => ({ idx: x.idx, rank: x.rank, name: this.nodes[x.idx].name, score: x.score, enforced: !!this.nodes[x.idx].e, active: x.idx === sel.match })),
       neighborCount: sel.nb.length,
@@ -283,8 +284,8 @@ export class Constellation {
     for (let ei = 0; ei < this.edges.length; ei++) {
       const e = this.edges[ei];
       const a = this.nodes[e[0]], b = this.nodes[e[1]];
-      const inA = sel ? (sel.nbSet.has(a.i) || a.i === sel.q) : (this.hover >= 0 && a.i === this.hover);
-      const inB = sel ? (sel.nbSet.has(b.i) || b.i === sel.q) : (this.hover >= 0 && b.i === this.hover);
+      const inA = sel ? (sel.nbSet.has(a.i) || a.i === sel.q || a.i === sel.match) : (this.hover >= 0 && a.i === this.hover);
+      const inB = sel ? (sel.nbSet.has(b.i) || b.i === sel.q || b.i === sel.match) : (this.hover >= 0 && b.i === this.hover);
       const important = inA || inB;
       if (!important) {
         if (sel) continue;                              // selection active: hide ambient web
@@ -329,10 +330,11 @@ export class Constellation {
       else if (sel) {
         const isQ = n.i === sel.q; const isM = n.i === sel.match; const rank = sel.nbSet.has(n.i) ? sel.nb.find((x) => x.idx === n.i).rank : undefined;
         if (isQ) { color = "#5BA4DD"; alpha = 1; glow = 14; r = Math.max(r, 4.6); }
+        else if (isM) { color = n.e ? "#E0A04A" : "#DCE3EC"; alpha = 1; glow = 8; r = Math.max(r, 3.8); }
         else if (rank !== undefined) {
           const reveal = Math.max(0, Math.min(1, (now - sel.t0 - rank * 22) / 300)); const e = this.ease(reveal);
           if (n.e) { color = "#E0A04A"; glow = 8 * e; } else { color = "#DCE3EC"; }
-          alpha = 0.35 + 0.65 * e; r = Math.max(r, isM ? 3.8 : 2.4); if (isM) glow = Math.max(glow, 8);
+          alpha = 0.35 + 0.65 * e; r = Math.max(r, 2.4);
         } else { if (n.e) { color = "#E0A04A"; alpha = 0.3; } else { color = "#3A4656"; alpha = 0.3; } }
       } else {
         if (n.e) { color = "#E0A04A"; alpha = 0.9 * twk; glow = lightGlow ? 0 : 6; }
