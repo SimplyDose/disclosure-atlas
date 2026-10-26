@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test": "node --test",
     "build": "vite build",
     "preview": "vite preview --port 4173",
     "data": "python3 scripts/build_app_data.py"

@@ -1,54 +1,43 @@
-# Disclosure Atlas — frontend
+# Disclosure Atlas frontend
 
-Production frontend for Disclosure Atlas: a comparative disclosure **semantic search** instrument
-rendered as an observatory-style constellation map. It is a faithful port of the locked Claude
-Design (`design-reference/Disclosure Atlas.dc.html`) wired to the **real** ingested dataset — real
-companies, real CIKs, real UMAP coordinates, real cosine similarity, and the 38 real pre-generated
-Claude explanations. No fabricated data anywhere (see `docs/DECISIONS_LOG.md` C16).
+A browser-based research instrument for comparing SEC disclosure language with published financial-screening measures. The constellation maps the shipped disclosure embeddings; every finding links to source filings, excerpts and company identifiers.
+
+Start with **a comparison**, inspect the two excerpts and their measured cosine similarity, then follow **Paper**, **Code** or **Reproduce** from the opening console. Methods documents the corpus, evaluation coverage, formulas and interpretation.
 
 ## Stack
-- Vite + vanilla JS (no framework). Canvas 2D constellation, DOM overlays for hero/panel/filters.
-- In-browser embeddings via transformers.js (`@huggingface/transformers`, `Xenova/bge-small-en-v1.5`,
-  CLS pooling + L2 normalize) — loaded lazily on first paste, $0, no API call.
 
-## Data pipeline
-The app reads a static bundle in `public/data/`, built from the embedding artifacts:
+- Vite and vanilla JavaScript, with a Canvas 2D constellation and DOM controls.
+- Static research assets in `public/data/`; no database connection in the frontend.
+- Lazy browser embeddings using `Xenova/bge-small-en-v1.5` via transformers.js, CLS pooling and L2 normalization. Pasted text is processed in the browser.
 
-```bash
-# from repo root, with the project venv active (has numpy + duckdb)
-python3 app/scripts/build_app_data.py
-```
-Outputs: `nodes.json`, `excerpts.json`, `neighbors.json` (cross-company top-10 real cosine),
-`findings.json` (38 featured pairs, node-indexed), `aaer.json` (real AAER numbers), `manifest.json`,
-and a copy of `embeddings.bin` (for the in-browser paste search).
+## Develop and verify
 
-## Develop / build
 ```bash
 cd app
-npm install
-npm run dev       # local dev server
-npm run build     # static production build -> app/dist
-npm run preview   # serve app/dist at http://localhost:4173
+npm ci
+npm test
+npm run dev
+npm run build
+npm run preview
 ```
 
-## Features (v1, all on existing data)
-- **Constellation hero** — real UMAP structure; enforced companies in amber (context only).
-- **Paste-your-own-footnote** — embeds your text in-browser, surfaces nearest neighbors.
-- **Nearest-neighbor exploration** — click a point → fly-to + ranked cross-company neighbors + finding panel.
-- **Filters** — footnote type, industry/SIC, similarity threshold, enforcement-only.
-- **Finding panel** — companies/CIK, real similarity, real excerpts, real Claude explanation
-  (featured pairs) or a neutral honest note, real EDGAR `sec.gov` source links, real AAER badge.
+`npm run build` writes `app/dist`; it does not deploy. A fresh checkout includes the static data bundle used by the development and preview servers. Rebuilding that bundle requires the separate original-data inputs described in [Reproducibility](../docs/REPRODUCIBILITY.md).
 
-## Honesty guardrails (enforced in copy + code)
-- UI language stays at "resembles / similar / nearest / drifted toward distress / outlier".
-  Never "suspicious / fraud / flagged".
-- Enforcement history is contextual, never a prediction (validation found no enforcement signal in
-  these footnote types — see `validation/VALIDATION_RESULTS.md`). Going-concern carries only a
-  weak, caveated distress tendency.
-- Explanations shown only from the 38 real generated findings; all other pairs are "shown by
-  similarity only", never invented analysis.
+## Research assets
 
-## Deploy
-Static build in `app/dist` is CDN-ready (relative `base`). Deploy with any static host:
-`vercel deploy --prod app/dist` (needs a Vercel token — not run autonomously) or drag-drop `dist/`.
-The ~8 MB data bundle gzips well; enable gzip/brotli on the host.
+With the full project environment and source artifacts available:
+
+```bash
+# From the repository root
+python3 app/scripts/build_app_data.py
+```
+
+The builder exports `nodes.json`, `excerpts.json`, `neighbors.json`, `findings.json`, `aaer.json`, `manifest.json` and `embeddings.bin`. Additional score assets come from `app/scripts/build_scores.py`. The current snapshot contains **17 featured comparison pairs** after two stale excerpt/score mappings were removed. The builder checks mapped-vector scores before retaining a comparison and its annotation.
+
+Featured comparison notes were generated with AI assistance. They are interpretation, separate from measured similarity and original excerpts; all other pairs display measured comparisons without generated interpretation. [Methods](src/methods.js) defines the text shared by the in-app methods view and downloadable methods document.
+
+## Data and interpretation
+
+Enforcement history supplies company context. Cosine similarity, Gunning Fog, distinctiveness and year-over-year change describe disclosure language. Beneish and Dechow scores retain the cited models, components, missing-input handling and sample limits. The systematic screen records its specification locally before computing results and always reports the full test family with Bonferroni and FDR corrections.
+
+For the study, current-corpus extensions and verification coverage, see the [paper](../paper/disclosure_atlas_paper.pdf), [evaluation report](../eval/REPORT.md) and [reproduction guide](../docs/REPRODUCIBILITY.md).

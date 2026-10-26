@@ -72,7 +72,7 @@ export class Share {
           <ul class="sh-def-list">${parts.map((p) => `<li class="mono">${esc(p)}</li>`).join("")}</ul>
         </div>
 
-        <div class="caveat">Opening this link reconstructs the EXACT cohort above: the same active filters and the same resulting set (footnotes, company-years, companies). A collaborator or referee lands on the identical sample and can immediately view Table 1, the data table, or download the panel. A cohort link is a reproducible <b>sample definition</b>: descriptive, with no scores, ranking, or judgment. Where financial measures (Beneish M-Score, Dechow F-Score) appear in this sample they are published academic screens shown with their limitations. This dataset cannot re-validate them. Enforcement history is descriptive context.</div>
+        <div class="caveat">This link restores the active filters and sample definition for the current data snapshot. Reviewers can open the same cohort in Table 1, the data table or panel export.</div>
       </div>`;
   }
 

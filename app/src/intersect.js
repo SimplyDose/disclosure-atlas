@@ -1,14 +1,6 @@
-// PHASE 5 — COMBINED DESCRIPTIVE INTERSECTION VIEW.
-//
-// HONESTY IS THE POINT OF THIS FEATURE. This surfaces companies that are descriptively unusual on
-// MULTIPLE INDEPENDENT measures at once — purely as starting points for a HUMAN to investigate.
-//   • NOT a risk score, NOT a fraud screen, NOT a ranking of suspicion, NOT a prediction.
-//   • There is NO combined/composite score. Each measure is shown SEPARATELY per company.
-//   • Co-occurrence of descriptive measures is descriptive context, never evidence of wrongdoing.
-//   • The replicated null stands (disclosure language does not predict enforcement); the financial
-//     screens are published models this dataset cannot re-validate.
-//   • Results are listed ALPHABETICALLY, never ranked by any measure. Cool/neutral only; amber is
-//     enforcement-context only; no alarm colors; no "suspicious / concerning / anomalous" language.
+// Descriptive intersection: companies meeting all selected criteria.
+// Each measure is calculated separately. Results are alphabetical and retain their individual
+// values, without a combined score. Amber is reserved for enforcement context.
 import { ensureScores, companyScores } from "./scores.js";
 import { ensureChanges, changesForCik } from "./changes.js";
 
@@ -19,7 +11,7 @@ const quantile = (s, p) => { if (!s.length) return null; const i = (s.length - 1
 const f2 = (v) => (v == null || !isFinite(v)) ? "—" : v.toFixed(2);
 const f3 = (v) => (v == null || !isFinite(v)) ? "—" : v.toFixed(3);
 
-const CAVEAT = "Starting points for human investigation, not a verdict. This surfaces companies that are descriptively unusual on multiple INDEPENDENT measures at once. It is NOT a risk score, NOT a fraud screen, NOT a ranking of suspicion, and NOT a prediction. Each measure is shown separately. There is no combined score, and results are listed alphabetically, not ranked. The co-occurrence of descriptive measures is descriptive context, never evidence of wrongdoing. Disclosure language does not predict enforcement (a replicated null at 161k). The Beneish M-Score (1999) and Dechow F-Score (2011) are published academic screens this dataset cannot re-validate. Read each company yourself.";
+const CAVEAT = "Companies meeting all selected criteria, listed alphabetically. Each measure is calculated and reported separately. Methodology documents the source measures and their interpretation.";
 
 const BEN = ["DSRI", "GMI", "AQI", "SGI", "DEPI", "SGAI", "LVGI", "TATA"];
 
@@ -75,12 +67,12 @@ export class Intersect {
     </div>`;
     const def = this.describe ? this.describe() : "all disclosures";
     this.body.innerHTML = `<div class="ch-head">
-        <div class="ch-head-main"><div class="ch-title mono">DESCRIPTIVE INTERSECTION</div><div class="ch-def mono">${esc(def)} · independent descriptive measures</div></div>
+        <div class="ch-head-main"><div class="ch-title mono">DESCRIPTIVE INTERSECTION</div><div class="ch-def mono">${esc(def)} · separately calculated measures</div></div>
         <button class="icon-btn mono" data-ix="close" type="button" aria-label="Close">✕</button>
       </div>
       <div class="ch-pad">
         <div class="ix-caveat">${esc(CAVEAT)}</div>
-        <div class="ix-crit-h mono">INTERSECT THESE INDEPENDENT MEASURES <span class="ch-rel">companies meeting ALL selected criteria · each measure shown separately</span></div>
+        <div class="ix-crit-h mono">SELECT MEASURES <span class="ch-rel">companies meeting ALL selected criteria · each measure shown separately</span></div>
         ${controls}
         <div class="ix-actions">
           <span class="ix-count mono" id="ixCount"></span>
@@ -138,7 +130,7 @@ export class Intersect {
 
   _renderResults() {
     const list = this.body.querySelector("#ixList"); const cnt = this.body.querySelector("#ixCount"); if (!list) return;
-    if (!this._selected()) { list.innerHTML = `<div class="caveat">Select one or more independent measures above to intersect. The view will show companies meeting all selected criteria, with each measure listed separately. There is no combined score and no ranking.</div>`; if (cnt) cnt.textContent = ""; this._view = []; return; }
+    if (!this._selected()) { list.innerHTML = `<div class="caveat">Select one or more measures to see companies meeting all selected criteria.</div>`; if (cnt) cnt.textContent = ""; this._view = []; return; }
     const matches = this._matches(); this._view = matches;
     const CAP = 200; const shown = matches.slice(0, CAP);
     if (cnt) cnt.textContent = matches.length.toLocaleString() + " compan" + (matches.length === 1 ? "y" : "ies") + (matches.length > CAP ? " · showing first " + CAP + " (alphabetical)" : " (alphabetical)");
@@ -159,7 +151,7 @@ export class Intersect {
         <div class="ix-co-meta mono">CIK ${esc(co.cik)}${co.tk ? " · " + esc(co.tk) : ""} · SIC ${esc(co.sic)}</div>
         <div class="ix-measures">${measures.join("")}</div>
       </div>`;
-    }).join("") + `<div class="caveat ix-foot">Each measure above is independent and descriptive. Their co-occurrence is context for a human to investigate, not evidence of anything. Click a company to open its full profile.</div>`;
+    }).join("") + `<div class="caveat ix-foot">Open a company to inspect its source disclosures, financial components and peer comparisons.</div>`;
   }
 
   // EXPORT: each constituent measure as a SEPARATE column. There is deliberately NO composite score.
@@ -190,7 +182,7 @@ export class Intersect {
     return `Disclosure Atlas · descriptive intersection\n`
       + `Filters: ${this.describe ? this.describe() : "all disclosures"}\nIntersected measures: ${met || "(none)"}\n`
       + `${(this._view || []).length.toLocaleString()} companies meet all selected criteria (listed alphabetically). Retrieved ${date}.\n`
-      + `Each measure is independent and descriptive and is reported separately. There is NO composite score, NO ranking, and this is NOT a risk or fraud assessment. Co-occurrence is descriptive context for human investigation, not evidence. Disclosure language does not predict enforcement (the replicated null). The M and F scores are published academic screens this dataset cannot re-validate.`;
+      + `Each selected measure is calculated and reported separately. Results are alphabetical, with no combined score. Source definitions, financial-model coverage and validation results are documented in Methodology.`;
   }
   _toast(t, m) { if (t) { t.textContent = m; clearTimeout(this._tt); this._tt = setTimeout(() => { t.textContent = ""; }, 2400); } }
 

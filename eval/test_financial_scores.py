@@ -75,6 +75,27 @@ class TestBeneishKnownValues(unittest.TestCase):
     def test_flag_boundary_uses_published_threshold(self):
         self.assertEqual(BENEISH_THRESHOLD, -1.78)
 
+    def test_nonneutral_depreciation_sga_and_leverage_hand_computed(self):
+        # Change one previously neutral index at a time, keeping the other indices
+        # at 1 and TATA at 0. Beneish (1999) coefficients: +.115, -.172, -.327.
+        # DEPI: (50/350)/(25/325) = 13/7; M = -2.48 + .115*(6/7) = -2.38142857.
+        # SGAI: (225/1000)/(150/1000) = 1.5; M = -2.48 - .172*.5 = -2.566.
+        # LVGI: ((200+250)/1000)/((200+100)/1000) = 1.5;
+        #        M = -2.48 - .327*.5 = -2.6435.
+        cases = (
+            ("DEPI", {"depreciation": 25.0}, 1.8571, -2.3814),
+            ("SGAI", {"sga": 225.0}, 1.5, -2.5660),
+            ("LVGI", {"ltd_noncurrent": 250.0}, 1.5, -2.6435),
+        )
+        for index, changes, expected_index, expected_m in cases:
+            with self.subTest(index=index):
+                m, flag, comp = beneish(steady(**changes), steady())
+                self.assertAlmostEqual(comp[index], expected_index, places=4)
+                self.assertAlmostEqual(m, expected_m, places=4)
+                self.assertFalse(flag)
+                self.assertFalse(comp["neutral_depi"])
+                self.assertFalse(comp["neutral_sgai"])
+
 
 class TestBeneishEdgeCases(unittest.TestCase):
     def test_missing_core_field_refuses_to_score(self):
@@ -159,6 +180,38 @@ class TestDechowKnownValues(unittest.TestCase):
         p1, _, _, comp = dechow(d_steady(issuance_equity=10.0), d_steady(), d_steady())
         self.assertAlmostEqual(p1 - p0, 1.029, places=4)
         self.assertEqual(comp["issuance"], 1)
+
+    def test_changing_balance_sheet_and_sales_hand_computed(self):
+        # Assets are 1000 in all three years, so both average-asset bases are 1000.
+        # Working capital: t=170, p=160. Noncurrent operating: t=300, p=360.
+        # Net financial assets: t=-85, p=-80. RSST=(10-60-5)/1000=-.055.
+        # Receivables change=40/1000=.04; inventory change=20/1000=.02.
+        # Soft assets=(1000-250-60)/1000=.69.
+        # Cash sales: t=1200-(140-100)=1160; p=1000-(100-80)=980.
+        # Cash-sales change=180/980=9/49; ROA change=80/1000-50/1000=.03.
+        # With issuance=1, the independently evaluated Model-1 linear predictor is:
+        # -7.893-.04345+.10072+.02382+1.36551+1.539/49-.02796+1.029
+        # = -5.413951836734694. Logistic=0.004434253706919274;
+        # dividing by the published .0037 base rate gives F=1.198446947816020.
+        t = d_steady(current_assets=450.0, current_liabilities=230.0,
+                     total_liabilities=550.0, receivables=140.0, revenue=1200.0,
+                     net_income=80.0, cash=60.0, ppe_net=250.0, inventory=100.0,
+                     st_investments=30.0, lt_investments=50.0, ltd_noncurrent=120.0,
+                     debt_current=40.0, preferred_stock=5.0, issuance_equity=10.0)
+        p = d_steady(st_investments=20.0, lt_investments=40.0,
+                     ltd_noncurrent=100.0, debt_current=30.0, preferred_stock=10.0)
+        pp = d_steady(receivables=80.0)
+        pred, prob, f, comp = dechow(t, p, pp)
+        expected_components = {
+            "rsst_accruals": -0.055, "ch_receivables": 0.04,
+            "ch_inventory": 0.02, "soft_assets": 0.69,
+            "ch_cash_sales": 0.1837, "ch_roa": 0.03, "issuance": 1,
+        }
+        for key, expected in expected_components.items():
+            self.assertAlmostEqual(comp[key], expected, places=4, msg=key)
+        self.assertAlmostEqual(pred, -5.4140, places=4)
+        self.assertAlmostEqual(prob, 0.004434, places=6)
+        self.assertAlmostEqual(f, 1.1984, places=4)
 
 
 class TestDechowEdgeCases(unittest.TestCase):

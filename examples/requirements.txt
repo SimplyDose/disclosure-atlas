@@ -1,0 +1,3 @@
+# Python 3.12+; verified with Python 3.14.5.
+numpy==2.4.6
+scipy==1.18.0

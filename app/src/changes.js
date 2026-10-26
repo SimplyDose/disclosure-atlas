@@ -2,7 +2,7 @@
 // disclosure LANGUAGE across the corpus, from the existing embeddings. For each company + footnote
 // type, the change between consecutive available fiscal years is the cosine DISTANCE between that
 // company-type's principal (longest) excerpt in each year. DESCRIPTIVE ONLY: a large shift is not a
-// red flag, not suspicious, not predictive of anything (the replicated null stands). Cool/neutral;
+// red flag, not suspicious, not predictive of anything (a descriptive comparison). Cool/neutral;
 // amber = enforcement only. Reuses existing embeddings; $0; no generation.
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const TYPE_FULL = { 0: "revenue recognition", 1: "going concern", 2: "related-party", 3: "critical audit matter", 4: "MD&A", 5: "risk factors" };
@@ -75,7 +75,7 @@ export function timelineHTML(cik) {
 const CSV_HEAD = ["company", "cik", "ticker", "sic_code", "sic_industry", "footnote_type", "year_from", "year_to", "change_cosine_distance", "enforced"];
 const csvRow = (ev) => [ev.name, ev.cik, ev.tk, ev.sic, ev.ind, TYPE_KEY[ev.t], ev.yA, ev.yB, ev.dist.toFixed(4), ev.e ? "yes" : "no"];
 
-const HONESTY = "Largest year-over-year change in disclosure LANGUAGE. This is a neutral, descriptive measure (cosine distance between consecutive available fiscal years' principal excerpt of each footnote type). The two years are always shown and may span a gap for sparse filers. A large shift is NOT a red flag, not suspicious, and not predictive of anything. It is a starting point for a researcher to read what changed. The replicated null stands: disclosure language does not separate SEC-enforced from matched-clean companies.";
+const METHOD_NOTE = "Year-over-year disclosure-language change is the cosine distance between consecutive available fiscal years’ principal excerpts. Both years are shown, including gaps. The calculation uses shipped quantized embeddings at their documented precision. Read the paired excerpts to understand the change.";
 
 export class Changes {
   // deps: { modal, body, setModal, engine, nodes, paste, describe, openCompare, downloadCSV }
@@ -122,7 +122,7 @@ export class Changes {
           <span class="act-toast mono" data-cx="toast" aria-live="polite"></span>
         </div>
         <div class="cx-list">${list}</div>
-        <div class="caveat fin-honesty">${esc(HONESTY)}</div>
+        <div class="caveat fin-honesty">${esc(METHOD_NOTE)}</div>
       </div>`;
   }
 
@@ -133,7 +133,7 @@ export class Changes {
       + `Definition: ${this.describe ? this.describe() : "all disclosures"} · ranked by cosine distance between consecutive available fiscal years' principal excerpt per company + footnote type (the two years are shown per row and may span a gap for sparse filers).\n`
       + `${n.toLocaleString()} year-over-year shifts in the current selection.\n`
       + `Source: SEC EDGAR footnote text; embeddings (bge-small-en-v1.5) computed in the build; change measured in-browser. Retrieved ${date}.\n`
-      + `Note: a descriptive measure of LINGUISTIC change only. It is not a red flag and not predictive (the disclosure-language null stands). A starting point for investigation.`;
+      + `Measure: cosine distance between the displayed years, from quantized disclosure embeddings. See Methodology for precision and source definitions.`;
   }
   _toast(t, m) { if (t) { t.textContent = m; clearTimeout(this._tt); this._tt = setTimeout(() => { t.textContent = ""; }, 2400); } }
 

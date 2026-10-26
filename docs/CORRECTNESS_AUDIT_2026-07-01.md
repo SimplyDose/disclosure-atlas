@@ -4,9 +4,15 @@
 
 ---
 
-## BOTTOM LINE
+## Scope clarification, October 25, 2026
 
-**The tool's computed values are trustworthy for empirical research** — with **two documented caveats** and **one data-property warning** a researcher MUST know. Across the audit, **every arithmetic/statistical value the tool reports was reproduced exactly**: Beneish M + 8 components, Dechow F + 7 inputs, Pearson/Spearman matrices, Table 1 descriptives, the going-concern cohort, the panel export cells, and all cross-view consistency. **Zero arithmetic bugs were found.** The two confirmed defects are **not wrong math** — they are a *precision* limitation (drift export) and a *unit-of-observation* collision (75 of 23,592 company-years). Neither was "fixed" in code because neither is a computation bug and both fixes would alter shipped values/functionality (the maintainer must decide); instead they are quantified below with exact scope and a researcher workaround.
+This historical audit checked formula arithmetic, stored inputs and selected exports.
+It did not validate upstream XBRL tag mapping, original-filing availability or the
+economic comparability of every fiscal-year pair. Recomputed agreement with stored
+inputs is narrower evidence than independent validation of those inputs. Later review
+also identified stale featured-pair mappings and singleton distinctiveness placeholders.
+Read the historical verdicts below within that scope, alongside the
+[October 25 research note](../paper/RESEARCH_NOTE_2026-10-25.md).
 
 | Domain | Verdict | Note |
 |---|---|---|

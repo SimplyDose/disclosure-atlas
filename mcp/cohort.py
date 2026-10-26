@@ -225,22 +225,22 @@ CODEBOOK = [
     ("cusip", "CUSIP security identifier - EMPTY by design: a licensed identifier this dataset does not contain. Map from CIK in your WRDS/CRSP/Compustat environment; never fabricated", "id (licensed)", "CUSIP/CRSP/Compustat - not included; join on CIK", "supply from your licensed source"),
     ("permno", "CRSP permanent security identifier - EMPTY by design: a licensed CRSP field this dataset does not contain. Map from CIK via the CRSP/Compustat Merged link; never fabricated", "id (licensed)", "CRSP/WRDS - not included; join on CIK", "supply from your licensed source"),
     ("fiscal_year", "Fiscal year (period of report) - the panel time index", "year", "SEC 10-K period_of_report", "period of report"),
-    ("filing_date", "Date the 10-K was filed - the date these measures became public; use for point-in-time / look-ahead control", "YYYY-MM-DD", "SEC EDGAR", "POINT-IN-TIME"),
+    ("filing_date", "Date the source 10-K was filed; derived measures may use later peers or revised financial facts", "YYYY-MM-DD", "SEC EDGAR", "source filing date; derived measures may be retrospective"),
     ("accession", "SEC accession number of the source 10-K filing", "id", "SEC EDGAR", "filing identifier"),
-    ("n_footnotes", "Number of footnote excerpts captured for this company-year", "count", "Disclosure Atlas", "known at filing_date"),
-    ("gunning_fog", "Gunning Fog readability index - company-year mean across footnotes (descriptive complexity, NOT a risk measure)", "grade level", "Disclosure Atlas (Gunning 1952)", "known at filing_date"),
-    ("distinctiveness", "Mean cosine distance from same-SIC-industry, same-type peer centroid - descriptive language unusualness", "0-1", "Disclosure Atlas (bge-small-en-v1.5)", "known at filing_date"),
+    ("n_footnotes", "Number of footnote excerpts captured for this company-year", "count", "Disclosure Atlas", "source filing text; see filing_date and snapshot provenance"),
+    ("gunning_fog", "Gunning Fog readability index - company-year mean across footnotes (descriptive complexity, NOT a risk measure)", "grade level", "Disclosure Atlas (Gunning 1952)", "source filing text; see filing_date and snapshot provenance"),
+    ("distinctiveness", "Mean cosine distance from the full-snapshot same-SIC-industry, same-type peer centroid, including own-company and later filings", "0-1", "Disclosure Atlas (bge-small-en-v1.5)", "retrospective full-snapshot measure; singleton placeholders documented in research note"),
 ]
 for _t in range(6):
-    CODEBOOK.append((f"has_{TYPE_KEY[_t]}", f"1 if a {TYPE_KEY[_t].replace('_',' ')} footnote is present this company-year, else 0", "0/1", "Disclosure Atlas", "known at filing_date"))
-CODEBOOK.append(("beneish_m", "Beneish M-Score (Beneish 1999), 8-variable - a published earnings-manipulation SCREEN, not a verdict; missing if inputs insufficient", "score", "Beneish 1999", "known at filing_date"))
-CODEBOOK.append(("beneish_flag", "1 if M > -1.78 (Beneish's published cutoff), else 0; missing if no M - a screen with a documented high false-positive rate", "0/1", "Beneish 1999", "known at filing_date"))
+    CODEBOOK.append((f"has_{TYPE_KEY[_t]}", f"1 if a {TYPE_KEY[_t].replace('_',' ')} footnote is present this company-year, else 0", "0/1", "Disclosure Atlas", "source filing text; see filing_date and snapshot provenance"))
+CODEBOOK.append(("beneish_m", "Beneish M-Score (Beneish 1999), 8-variable - a published earnings-manipulation SCREEN, not a verdict; missing if inputs insufficient", "score", "Beneish 1999", "cached XBRL snapshot; original-filing availability not established"))
+CODEBOOK.append(("beneish_flag", "1 if M > -1.78 (Beneish's published cutoff), else 0; missing if no M - a screen with a documented high false-positive rate", "0/1", "Beneish 1999", "cached XBRL snapshot; original-filing availability not established"))
 for _k in BENEISH_COMPONENTS:
-    CODEBOOK.append((f"beneish_{_k.lower()}", f"Beneish M-Score component index: {_k}", "index", "Beneish 1999", "known at filing_date"))
-CODEBOOK.append(("dechow_fscore", "Dechow F-Score (Dechow et al. 2011, Model 1) = predicted probability / 0.0037 unconditional rate; F>1 = above the base rate, NOT a probability of fraud; missing if inputs insufficient", "score", "Dechow et al. 2011", "known at filing_date"))
-CODEBOOK.append(("dechow_prob", "Dechow Model-1 predicted misstatement probability (logistic)", "probability", "Dechow et al. 2011", "known at filing_date"))
+    CODEBOOK.append((f"beneish_{_k.lower()}", f"Beneish M-Score component index: {_k}", "index", "Beneish 1999", "cached XBRL snapshot; original-filing availability not established"))
+CODEBOOK.append(("dechow_fscore", "Dechow F-Score (Dechow et al. 2011, Model 1) = predicted probability / 0.0037 unconditional rate; F>1 = above the base rate, NOT a probability of fraud; missing if inputs insufficient", "score", "Dechow et al. 2011", "cached XBRL snapshot; original-filing availability not established"))
+CODEBOOK.append(("dechow_prob", "Dechow Model-1 predicted misstatement probability (logistic)", "probability", "Dechow et al. 2011", "cached XBRL snapshot; original-filing availability not established"))
 for _k in DECHOW_COMPONENTS:
-    CODEBOOK.append((f"dechow_{_k}", f"Dechow Model-1 input: {_k.replace('_',' ')}", "ratio", "Dechow et al. 2011", "known at filing_date"))
+    CODEBOOK.append((f"dechow_{_k}", f"Dechow Model-1 input: {_k.replace('_',' ')}", "ratio", "Dechow et al. 2011", "cached XBRL snapshot; original-filing availability not established"))
 CODEBOOK.append(("enforced", "1 if the company has SEC AAER enforcement history, else 0 - descriptive CONTEXT about the company, NOT an outcome or a prediction from its disclosures", "0/1", "SEC AAERs", "company-level context"))
 
 PANEL_COLUMNS = [row[0] for row in CODEBOOK]

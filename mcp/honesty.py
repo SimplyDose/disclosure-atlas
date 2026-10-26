@@ -29,9 +29,10 @@ CANNOT_REVALIDATE = (
 )
 
 REPLICATED_NULL = (
-    "Replicated null: across this corpus, disclosure language does NOT separate SEC-enforced from "
-    "matched-clean companies (holds at 94,455 footnotes across 6 footnote types). Disclosure language "
-    "does not predict enforcement."
+    "Similarity clustering does not separate enforced companies from matched-clean companies at "
+    "the study's specified positive Cohen's d >= 0.2 threshold across 161,469 excerpts and six types. "
+    "This directional test is distinct from classification: current matched classifier probes have "
+    "AUC 0.686 for revenue recognition and 0.650 for going concern (July 2026 evaluation)."
 )
 
 CHANGE_NOT_A_FLAG = (
@@ -50,7 +51,7 @@ NO_RISK_SCORE = (
 KEYWORD_BASELINE = (
     "Honest baseline: a BM25 keyword ranking is the comparison point for semantic search. The "
     "validated capability of this instrument is concept-level retrieval that finds matches keyword "
-    "overlap misses; it does not carry any enforcement signal (see the replicated null)."
+    "overlap misses. Retrieval and enforcement-label analyses are evaluated separately."
 )
 
 ENFORCEMENT_CONTEXT = (

@@ -1,13 +1,13 @@
 # Disclosure Atlas — Evaluation Harness (`/eval`)
 
-An add-only, read-only evaluation harness for the two pillars of this project and — above
-all — for its credibility centerpiece: the **empirical going-concern / enforcement study
-whose headline result is a validated NULL finding** (disclosure language does *not*
-measurably separate SEC-enforced from clean companies).
+Known-answer financial tests, retrieval checks and corpus-level research evaluation.
+For a small result that runs using repository files alone, start with the
+[going-concern example](../examples/README.md). The [reproduction guide](../docs/REPRODUCIBILITY.md)
+maps the primary paper cohort, higher-precision subset and original-data inputs.
 
-Everything here was created without modifying any existing source file, data file, config,
-or migration. All database access is `read_only=True`. The only files this harness writes
-are inside `/eval` (`measurements.json`).
+Database connections are read-only. Full evaluation writes `eval/measurements.json`;
+the offline formula selection writes no measurements. Historical results are preserved
+in [REPORT.md](REPORT.md), dated July 5, 2026.
 
 ## Run it
 
@@ -47,8 +47,8 @@ for those; `requirements-offline.txt` intentionally does not install their depen
 Exit code 0 = all tests pass. Measured numbers land in `eval/measurements.json`.
 Plain-English results and caveats: **`eval/REPORT.md`**.
 
-Framework: Python stdlib `unittest` (no separate test framework). Full evaluation requires the project `.venv`
-(numpy, scikit-learn, duckdb, fastembed — all already installed). The footnote-search suite
+Framework: Python stdlib `unittest`. Install the full research environment with
+`.venv/bin/python -m pip install -r requirements-research.txt` from the repository root. The footnote-search suite
 needs the bge-small-en-v1.5 ONNX model in the local HuggingFace cache; the first-ever run
 downloads it (~130 MB), after which everything is offline.
 

@@ -53,14 +53,14 @@ class AtlasData:
     """Loads and holds the read-only bundle. Construct once (see get_data())."""
 
     def __init__(self):
-        self.nodes = _load_json("nodes.json")            # list[dict], len 94455, idx == node.i
+        self.nodes = _load_json("nodes.json")            # list[dict], idx == node.i
         self.scores = _load_json("scores.json")          # cik -> {name, years:[...]}
         self.tickers = _load_json("tickers.json")        # cik -> ticker
         self.aaer = _load_json("aaer.json")              # cik -> [{aaer,date}]
         self.manifest = _load_json("manifest.json")
         self.neighbors = _load_json("neighbors.json")    # list by node idx -> [[idx,cos],...]
 
-        # int8 embeddings, memory-mapped; 94455 x 384, dequant scale inv = 1/127
+        # Shipped int8 embeddings; row count and dimension follow the bundle manifest.
         meta_dim = int(self.manifest.get("embedding_dim", 384))
         raw = np.fromfile(os.path.join(DATA, "embeddings.bin"), dtype=np.int8)
         n = len(self.nodes)

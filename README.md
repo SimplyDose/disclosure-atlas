@@ -1,70 +1,107 @@
 # Disclosure Atlas
 
-Disclosure Atlas is a browser-based semantic search research instrument for SEC disclosures. I built this to study the relationship between how distressed companies write their disclosure notes and their financial condition. It maps 161,469 footnotes from 3,253 public companies and allows you to search by meaning and compute financial quality scores at scale. To test my findings, I built a systematic screening framework and ran hundreds of pre-registered tests, and implemented safeguards to prevent false discoveries and p-hacking, including:
+**Explore the language of public-company disclosures. Reproduce the research behind it.**
 
-- mandatory corrections
-- locking in the tests before running them
-- reporting every result
+Disclosure Atlas combines semantic search over **161,469 SEC disclosure excerpts from
+3,253 companies** with an empirical study of disclosure language and financial screens.
+The browser application connects each comparison to its source filing and supports
+company-year panels, descriptive statistics and a fully reported multiple-testing screen.
 
-## What I found
+[**Read the paper**](paper/disclosure_atlas_paper.pdf) ·
+[**Explore the app**](https://disclosure-atlas.vercel.app) ·
+[**Reproduce a result**](examples/README.md) ·
+[Research page](https://simplydose.app/disclosure-atlas/)
 
-My findings suggest that among companies issued a going-concern warning, the way they write their disclosures has no meaningful relationship to their financial-quality measures. This was tested rigorously with 460 tests, only 3 of which survived, and none involved the financial scores. Overall, this paper suggests disclosure language reflects the standardized conventions public companies follow rather than their financial condition.
+[October 25 research note](paper/RESEARCH_NOTE_2026-10-25.md) clarifies the archived
+paper's interpretation, measure construction and scope of reproducibility.
 
-## What's in this repo
+![Disclosure Atlas comparison panel with source excerpts, measured similarity and semantic map](docs/assets/disclosure-atlas.jpg)
 
-- `paper/`: the working paper, plus the replication code that regenerates every table (`final_tables.py`) and every figure (`make_figures.py`) from the real data. The exact cohort is archived in `gc_cohort_2010_2026.csv`.
-- `app/`: the source code for the Disclosure Atlas app itself. It's a static site. The embeddings run in your browser, and there is no backend.
-- `ingestion/`: the pipeline that pulls the filings from SEC EDGAR and extracts the footnotes.
-- `eval/`: the evaluation harness. It re-derives the core results with independently written code and checks them against the published numbers. The recorded full evaluation is in `eval/REPORT.md`; use the commands below for fresh checks of the current checkout.
-- `docs/`: architecture notes, the build log, and the audits.
+## Research question
 
-## Start here for development
+How are disclosure readability and linguistic distinctiveness related to financial-screen
+measures among companies with going-concern language?
 
-Read [AGENTS.md](AGENTS.md) for shared project boundaries and the scope-document gap.
-The current frontend is **Vite + vanilla JavaScript with static data and browser-side
-embeddings**; Supabase/pgvector is not part of its current runtime. See
-[app/README.md](app/README.md) for frontend setup and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-for the build-time pipeline.
+The paper examines **4,186 company-years from 1,373 companies**, selected by extracted
+going-concern language. Estimated correlations
+between the two language measures and the composite Beneish M-Score and Dechow F-Score
+are small. None of those composite-score associations survives the specified
+multiple-testing correction. Three nested associations with one Beneish component
+survive FDR correction; one survives Bonferroni correction.
 
-For the data-independent financial checks, use Python 3.14.5 in a separate environment:
+The [results and methods](docs/RESULTS.md) identify the sample, score coverage and
+interpretation. The paper includes the firm-level robustness analysis.
 
-```bash
-python3.14 -m venv .venv-offline
-.venv-offline/bin/python -m pip install -r eval/requirements-offline.txt
-.venv-offline/bin/python eval/run_eval.py --offline
+## Reproduce a result
+
+With **Python 3.12+**, from the repository root:
+
+```sh
+python3 -m venv .venv-example
+.venv-example/bin/python -m pip install -r examples/requirements.txt
+.venv-example/bin/python examples/going_concern.py
 ```
 
-The same command runs in the proposed [offline workflow](.github/workflows/offline-checks.yml).
-It tests production formulas against known answers and edge cases, without datasets,
-model downloads, credentials, SEC calls or paid calls. Dependency installation needs
-package-registry access; the check itself works offline. It does not certify the full
-study, frontend or MCP server. See [eval/README.md](eval/README.md) for the full evaluation.
+The command uses files included in this repository. It rebuilds the cohort, matches
+every archived company-year key, and checks the four principal correlations. Its JSON
+output includes counts, full-precision estimates, input hashes and `"checks": "PASS"`.
+After installation, it runs offline without credentials or model downloads.
 
-Deployments are separate owner-approved operations. Before publishing a branch or
-merging, verify all connected hosting triggers, including Vercel and GitHub Pages;
-an unchanged Pages workflow alone does not establish deployment isolation.
+| Disclosure measure | Beneish M-Score | Dechow F-Score |
+|---|---:|---:|
+| Gunning Fog readability | 0.0218 | 0.0269 |
+| Embedding-based distinctiveness | 0.0598 | -0.0281 |
+| Complete company-year pairs | 1,120 | 1,323 |
 
-## How it works
+Start with [`examples/going_concern.py`](examples/going_concern.py) and its
+[tests](eval/test_research_example.py). For the formula checks, full research environment
+and archived-input workflow, see [Reproducibility](docs/REPRODUCIBILITY.md).
 
-The corpus is 161,469 footnotes extracted from the annual filings of 3,253 public companies on SEC EDGAR. For each disclosure I measure two things about the language and two financial screens:
+## My contribution
 
-- readability (the Gunning Fog Index)
-- distinctiveness (cosine distance from same-industry peer disclosures)
-- the Beneish M-Score
-- the Dechow F-Score
+I defined the research question, cohort rules, measures and analysis plan; interpreted
+the results; and directed the instrument's implementation and verification. The
+[paper](paper/disclosure_atlas_paper.pdf) documents implementation assistance and the
+checks performed. I am interested in how language measures can support empirical
+accounting research and where their interpretation breaks down.
 
-To make sure nothing was hiding in subgroups, I ran a systematic screen of 460 tests with Bonferroni and Benjamini–Hochberg FDR corrections applied across the whole family.
+Joshua Munger · University of Missouri, School of Accountancy
 
-## Links
+## Explore the code
 
-- Live app: https://disclosure-atlas.vercel.app
-- Project page: https://simplydose.app/disclosure-atlas
-- Paper: [`paper/disclosure_atlas_paper.pdf`](paper/disclosure_atlas_paper.pdf)
+| Path | Purpose |
+|---|---|
+| [`examples/`](examples/README.md) | A small, runnable paper-result reproduction |
+| [`paper/`](paper/) | Working paper, archived cohort keys, table and figure code |
+| [`app/`](app/README.md) | Static browser application, semantic map and analysis tools |
+| [`mcp/cohort.py`](mcp/cohort.py) | Shared filtering and company-year panel construction |
+| [`ingestion/compute_scores.py`](ingestion/compute_scores.py) | Beneish and Dechow formulas with component outputs |
+| [`eval/`](eval/README.md) | Hand-calculated fixtures, formula checks and research evaluation |
+| [`docs/`](docs/) | Methods, data model, validation records and architecture |
 
-## Built with
+## Run the application
 
-I built this with AI assistance (Claude, via Claude Code), and all of the computations were independently verified. See the AI-Use Disclosure in the paper for details.
+With **Node.js 24**, from the repository root:
 
-## License
+```sh
+cd app
+npm ci
+npm test
+npm run dev
+```
 
-MIT. See [LICENSE](LICENSE).
+`npm run build` produces the static application in `app/dist`. The frontend uses Vite,
+vanilla JavaScript and the included data bundle. Query embeddings run locally in the
+browser. The [frontend guide](app/README.md) describes the data and controls.
+
+## Cite
+
+Munger, Joshua (2026). *Disclosure Notes Relation to Financial Quality Metrics in
+Going-Concern Companies: Evidence of Non-Association*. Working paper, University of
+Missouri, School of Accountancy. [Paper and project](https://simplydose.app/disclosure-atlas/).
+Read the archived title alongside the [dated research note](paper/RESEARCH_NOTE_2026-10-25.md):
+small estimates and adjusted non-significance do not establish equivalence.
+
+Software citation metadata is in [CITATION.cff](CITATION.cff). Code is licensed under
+[MIT](LICENSE); source and derived-data details are in the
+[reproduction guide](docs/REPRODUCIBILITY.md#data-and-provenance).

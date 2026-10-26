@@ -36,9 +36,9 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": 
 
 export const CITE_M = "Beneish (1999), Financial Analysts Journal";
 export const CITE_F = "Dechow, Ge, Larson & Sloan (2011), Contemporary Accounting Research, Model 1";
-const LIMIT_M = "Screen, not a verdict. Beneish (1999) notes a high false-positive rate. Legitimate M&A or restructuring can spike the indices (an acquisition lifts AQI, for example). The model is sample- and era-dependent (1982 to 1992) and weak for financial / no-COGS firms.";
-const LIMIT_F = "Screen, not a verdict. F>1 means above the unconditional misstatement rate, not a probability of fraud. The base rate is tiny, so even elevated values yield many false positives. The model was built on AAER firms from 1982 to 2005.";
-export const PILLAR_NOTE = "These are outputs of established, peer-reviewed academic screening models over reported financials, shown with their drivers and published limitations. They are screens, not verdicts, and not my judgment. This dataset cannot re-validate them: XBRL begins around 2009, most enforcement cases predate that, and enforced and clean scores do not separate in this sample. So the basis that these models carry signal is the published literature, presented as such. This is distinct from, and consistent with, the disclosure-language null.";
+const LIMIT_M = "Eight financial ratios compare the current and prior fiscal year. Beneish (1999) developed the model on a 1982–1992 sample; Methodology documents its coverage and interpretation.";
+const LIMIT_F = "F-Score = model-estimated misstatement probability divided by the study's 0.0037 base rate. F > 1 is above that base rate. Model 1 uses an AAER sample from 1982–2005.";
+export const PILLAR_NOTE = "Beneish (1999) and Dechow et al. (2011) screens are computed from reported XBRL inputs. See Methodology for coverage, model details and interpretation.";
 
 // signed contribution of each component to the score, relative to its neutral baseline
 function mContribs(mc) {
@@ -76,12 +76,12 @@ function mTile(year) {
   return `<div class="fin-tile">
     <div class="fin-tile-head">
       <span class="fin-tile-name mono">BENEISH M-SCORE</span>
-      <span class="fin-tile-val mono">${out ? '<span class="fin-out" title="degenerate: tiny-denominator inputs. A real formula output, interpret with caution">≫</span>' : ""}${fmt(year.m)}</span>
+      <span class="fin-tile-val mono">${out ? '<span class="fin-out" title="Extreme model output; inspect component ratios and denominators">≫</span>' : ""}${fmt(year.m)}</span>
     </div>
     <div class="fin-tile-cite">${esc(CITE_M)}</div>
-    ${flag ? `<div class="fin-pill mono" title="The model's published cutoff. A screen, not a verdict.">▲ ABOVE ${M_THRESHOLD} THRESHOLD</div>` : `<div class="fin-pill is-quiet mono">below ${M_THRESHOLD} threshold</div>`}
+    ${flag ? `<div class="fin-pill mono" title="Beneish's published model cutoff">▲ ABOVE ${M_THRESHOLD} THRESHOLD</div>` : `<div class="fin-pill is-quiet mono">below ${M_THRESHOLD} threshold</div>`}
     ${grid}
-    ${out ? `<div class="fin-limits">Degenerate value from near-zero denominators. It is shown verbatim (a real formula output), not a meaningful magnitude.</div>` : ""}
+    ${out ? `<div class="fin-limits">Extreme output shown as computed. Inspect the component ratios and their denominators.</div>` : ""}
     <div class="fin-limits">${esc(LIMIT_M)}</div>
   </div>`;
 }
@@ -94,19 +94,19 @@ function fTile(year) {
   return `<div class="fin-tile">
     <div class="fin-tile-head">
       <span class="fin-tile-name mono">DECHOW F-SCORE</span>
-      <span class="fin-tile-val mono">${out ? '<span class="fin-out" title="degenerate: tiny-denominator inputs. A real formula output, interpret with caution">≫</span>' : ""}${fmt(year.f)}</span>
+      <span class="fin-tile-val mono">${out ? '<span class="fin-out" title="Extreme model output; inspect component ratios and denominators">≫</span>' : ""}${fmt(year.f)}</span>
     </div>
     <div class="fin-tile-cite">${esc(CITE_F)}</div>
     <div class="fin-pill is-quiet mono">${esc(bin)}</div>
     ${grid}
-    ${out ? `<div class="fin-limits">Degenerate value from near-zero denominators. It is shown verbatim (a real formula output), not a meaningful magnitude.</div>` : ""}
+    ${out ? `<div class="fin-limits">Extreme output shown as computed. Inspect the component ratios and their denominators.</div>` : ""}
     <div class="fin-limits">${esc(LIMIT_F)}</div>
   </div>`;
 }
 
 function noTile(name, cite, year) {
   const reason = year && year.note ? esc(year.note.replace(/beneish:|dechow:/g, "").trim()) : "insufficient inputs";
-  return `<div class="fin-tile fin-none"><div class="fin-tile-head"><span class="fin-tile-name mono">${name}</span><span class="fin-tile-val mono fin-na">no score</span></div><div class="fin-tile-cite">${esc(cite)}</div><div class="fin-limits">No score for FY${year ? year.y : ""}: ${reason} (not zero).</div></div>`;
+  return `<div class="fin-tile fin-none"><div class="fin-tile-head"><span class="fin-tile-name mono">${name}</span><span class="fin-tile-val mono fin-na">no score</span></div><div class="fin-tile-cite">${esc(cite)}</div><div class="fin-limits">No score for FY${year ? year.y : ""}: ${reason}.</div></div>`;
 }
 // reusable: the M + F tiles for one fiscal year (used by the finding panel AND the company profile)
 export function yearTilesHTML(year) {

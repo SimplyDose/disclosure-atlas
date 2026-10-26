@@ -22,28 +22,28 @@ const COLS = [
   { name: "cusip", type: "id", get: () => "", def: "CUSIP security identifier, EMPTY by design: CUSIP is a licensed identifier this dataset does not contain. Map it from CIK in your WRDS/Compustat/CRSP environment (see JOINING.md), never fabricated", units: "id (licensed)", source: "CUSIP/CRSP/Compustat, not included. Join on CIK", basis: "supply from your licensed source" },
   { name: "permno", type: "id", get: () => "", def: "CRSP permanent security identifier, EMPTY by design: PERMNO is a licensed CRSP field this dataset does not contain. Map it from CIK via the CRSP/Compustat Merged link in your environment (see JOINING.md), never fabricated", units: "id (licensed)", source: "CRSP/WRDS, not included. Join on CIK", basis: "supply from your licensed source" },
   { name: "fiscal_year", type: "int", get: (r) => r.fy, def: "Fiscal year (period of report), the panel time index", units: "year", source: "SEC 10-K period_of_report", basis: "period of report" },
-  { name: "filing_date", type: "date", get: (r) => r.filing_date, def: "Date the 10-K was filed with the SEC, the date these measures became public. Use for look-ahead / point-in-time control", units: "YYYY-MM-DD", source: "SEC EDGAR", basis: "POINT-IN-TIME: known on this date" },
+  { name: "filing_date", type: "date", get: (r) => r.filing_date, def: "Date the source 10-K was filed; derived measures may use later peers or revised financial facts", units: "YYYY-MM-DD", source: "SEC EDGAR", basis: "source filing date; derived measures may be retrospective" },
   { name: "accession", type: "id", get: (r) => r.accession, def: "SEC accession number of the source 10-K filing", units: "id", source: "SEC EDGAR", basis: "filing identifier" },
-  { name: "n_footnotes", type: "int", get: (r) => r.n_fn, def: "Number of footnote excerpts captured for this company-year", units: "count", source: "Disclosure Atlas", basis: "known at filing_date" },
-  { name: "gunning_fog", type: "num", get: (r) => r.fog, def: "Gunning Fog readability index, company-year mean across footnotes (descriptive complexity, NOT a risk measure)", units: "grade level", source: "Disclosure Atlas (Gunning 1952)", basis: "known at filing_date" },
-  { name: "distinctiveness", type: "num", get: (r) => r.dst, def: "Mean cosine distance from same-SIC-industry, same-type peer centroid. Descriptive language unusualness", units: "0-1", source: "Disclosure Atlas (bge-small-en-v1.5)", basis: "known at filing_date" },
+  { name: "n_footnotes", type: "int", get: (r) => r.n_fn, def: "Number of footnote excerpts captured for this company-year", units: "count", source: "Disclosure Atlas", basis: "source filing text; see filing_date and snapshot provenance" },
+  { name: "gunning_fog", type: "num", get: (r) => r.fog, def: "Gunning Fog readability index, company-year mean across footnotes (descriptive complexity, NOT a risk measure)", units: "grade level", source: "Disclosure Atlas (Gunning 1952)", basis: "source filing text; see filing_date and snapshot provenance" },
+  { name: "distinctiveness", type: "num", get: (r) => r.dst, def: "Mean cosine distance from the full-snapshot same-SIC-industry, same-type peer centroid, including own-company and later filings", units: "0-1", source: "Disclosure Atlas (bge-small-en-v1.5)", basis: "retrospective full-snapshot measure; singleton placeholders documented in research note" },
 ];
 for (let t = 0; t <= 5; t++) {
-  COLS.push({ name: "has_" + TYPE_KEY[t], type: "flag", get: (r) => r.has[t], def: `1 if a ${TYPE_KEY[t].replace(/_/g, " ")} footnote is present this company-year, else 0`, units: "0/1", source: "Disclosure Atlas", basis: "known at filing_date" });
+  COLS.push({ name: "has_" + TYPE_KEY[t], type: "flag", get: (r) => r.has[t], def: `1 if a ${TYPE_KEY[t].replace(/_/g, " ")} footnote is present this company-year, else 0`, units: "0/1", source: "Disclosure Atlas", basis: "source filing text; see filing_date and snapshot provenance" });
 }
 const BEN = ["dsri", "gmi", "aqi", "sgi", "depi", "sgai", "lvgi", "tata"];
 COLS.push(
-  { name: "beneish_m", type: "num", get: (r) => r.m, def: "Beneish M-Score (Beneish 1999), 8-variable. A published earnings-manipulation SCREEN, not a verdict. Missing if inputs insufficient", units: "score", source: "Beneish 1999", basis: "known at filing_date" },
-  { name: "beneish_flag", type: "flag", get: (r) => r.mf, def: "1 if M > -1.78 (Beneish's published cutoff), else 0. Missing if no M. A screen with a documented high false-positive rate", units: "0/1", source: "Beneish 1999", basis: "known at filing_date" },
+  { name: "beneish_m", type: "num", get: (r) => r.m, def: "Beneish M-Score (Beneish 1999), eight-variable model. Missing if inputs are insufficient", units: "score", source: "Beneish 1999", basis: "cached XBRL snapshot; original-filing availability not established" },
+  { name: "beneish_flag", type: "flag", get: (r) => r.mf, def: "1 if M > -1.78 (Beneish's published cutoff), else 0. Missing if M is unavailable", units: "0/1", source: "Beneish 1999", basis: "cached XBRL snapshot; original-filing availability not established" },
 );
-for (const k of BEN) COLS.push({ name: "beneish_" + k, type: "num", get: (r) => r.mc[k.toUpperCase()] ?? null, def: `Beneish M-Score component index: ${k.toUpperCase()}`, units: "index", source: "Beneish 1999", basis: "known at filing_date" });
+for (const k of BEN) COLS.push({ name: "beneish_" + k, type: "num", get: (r) => r.mc[k.toUpperCase()] ?? null, def: `Beneish M-Score component index: ${k.toUpperCase()}`, units: "index", source: "Beneish 1999", basis: "cached XBRL snapshot; original-filing availability not established" });
 COLS.push(
-  { name: "dechow_fscore", type: "num", get: (r) => r.f, def: "Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) = predicted probability / 0.0037 unconditional rate; F>1 = above the base rate, NOT a probability of fraud; missing if inputs insufficient", units: "score", source: "Dechow et al. 2011", basis: "known at filing_date" },
-  { name: "dechow_prob", type: "num", get: (r) => r.fp, def: "Dechow Model-1 predicted misstatement probability (logistic)", units: "probability", source: "Dechow et al. 2011", basis: "known at filing_date" },
+  { name: "dechow_fscore", type: "num", get: (r) => r.f, def: "Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) = predicted probability / 0.0037 unconditional rate; F>1 = above the base rate; missing if inputs insufficient", units: "score", source: "Dechow et al. 2011", basis: "cached XBRL snapshot; original-filing availability not established" },
+  { name: "dechow_prob", type: "num", get: (r) => r.fp, def: "Dechow Model-1 predicted misstatement probability (logistic)", units: "probability", source: "Dechow et al. 2011", basis: "cached XBRL snapshot; original-filing availability not established" },
 );
 const DEC = ["rsst_accruals", "ch_receivables", "ch_inventory", "soft_assets", "ch_cash_sales", "ch_roa", "issuance"];
-for (const k of DEC) COLS.push({ name: "dechow_" + k, type: "num", get: (r) => r.fc[k] ?? null, def: `Dechow Model-1 input: ${k.replace(/_/g, " ")}`, units: "ratio", source: "Dechow et al. 2011", basis: "known at filing_date" });
-COLS.push({ name: "enforced", type: "flag", get: (r) => r.enforced, def: "1 if the company has SEC AAER enforcement history, else 0. Descriptive CONTEXT about the company, NOT an outcome or a prediction from its disclosures", units: "0/1", source: "SEC AAERs", basis: "company-level context" });
+for (const k of DEC) COLS.push({ name: "dechow_" + k, type: "num", get: (r) => r.fc[k] ?? null, def: `Dechow Model-1 input: ${k.replace(/_/g, " ")}`, units: "ratio", source: "Dechow et al. 2011", basis: "cached XBRL snapshot; original-filing availability not established" });
+COLS.push({ name: "enforced", type: "flag", get: (r) => r.enforced, def: "1 if the company has SEC AAER enforcement history, else 0; company-level historical context", units: "0/1", source: "SEC AAERs", basis: "company-level context" });
 
 // ── build the panel rows for a set of company-year keys ("cik|fy") ──
 export function buildPanel(keys, allByKey, nodes, companyScores, tickers) {
@@ -109,7 +109,7 @@ destring ${destring}, replace
 encode cik, generate(cik_id)
 xtset cik_id fiscal_year
 
-* parse the point-in-time filing date (the date each measure became public, used to avoid look-ahead)
+* parse the point-in-time filing date (source filing date; derived measures may be retrospective)
 generate filing_date_d = date(filing_date, "YMD")
 format filing_date_d %td
 
@@ -118,8 +118,8 @@ ${labels}
 
 * CIK is the primary join key to Compustat/CRSP (via CIK<->GVKEY/PERMNO crosswalks).
 * gvkey/cusip/permno ship EMPTY (licensed). Fill them from your WRDS environment (see JOINING.md).
-* M-Score / F-Score are published academic SCREENS (Beneish 1999; Dechow et al. 2011) with known
-* limitations. This corpus cannot re-validate them. Disclosure measures are descriptive. No risk score.
+* M-Score / F-Score follow Beneish (1999) and Dechow et al. (2011).
+* Model definitions, sample coverage and evaluation results are documented in the app's Methodology.
 `;
 }
 
@@ -140,9 +140,9 @@ ${ct}
 # Empty cells read as NA (proper missing), do NOT treat 0 as missing.
 # CIK (character, zero-padded 10-digit) is the primary join key to Compustat/CRSP via CIK<->GVKEY/PERMNO.
 # gvkey/cusip/permno read as NA character columns (licensed). Fill them from WRDS (see JOINING.md).
-# filing_date is point-in-time: the date each measure became public (use to avoid look-ahead bias).
-# M-Score / F-Score are published academic SCREENS (Beneish 1999; Dechow et al. 2011) with known
-# limitations. This corpus cannot re-validate them. Disclosure measures are descriptive. No risk score.
+# filing_date is the source filing date. Distinctiveness uses the full snapshot; financial facts may be revised.
+# M-Score / F-Score follow Beneish (1999) and Dechow et al. (2011).
+# Model definitions, sample coverage and evaluation results are documented in the app's Methodology.
 str(panel)
 `;
 }
@@ -166,9 +166,9 @@ panel = pd.read_csv(
 
 # CIK (zero-padded string) is the primary join key to Compustat/CRSP via CIK<->GVKEY/PERMNO.
 # gvkey/cusip/permno arrive EMPTY (licensed). Fill them from your WRDS environment (see JOINING.md).
-# filing_date is point-in-time: the date each measure became public (use to avoid look-ahead bias).
-# M-Score / F-Score are published academic SCREENS (Beneish 1999; Dechow et al. 2011) with known
-# limitations. This corpus cannot re-validate them. Disclosure measures are descriptive. No risk score.
+# filing_date is the source filing date. Distinctiveness uses the full snapshot; financial facts may be revised.
+# M-Score / F-Score follow Beneish (1999) and Dechow et al. (2011).
+# Model definitions, sample coverage and evaluation results are documented in the app's Methodology.
 print(panel.dtypes)
 print(panel.shape)
 `;
@@ -204,15 +204,15 @@ not contain. They are never fabricated. Map them yourself from CIK in your licen
    Always join the link on a date (filing_date or fiscal_year), because these mappings change over time.
 
 4) POINT-IN-TIME / LOOK-AHEAD BIAS
-   filing_date is when each company-year's measures became PUBLIC (the 10-K filing date). fiscal_year
-   is the period of report, which ends months earlier. To avoid look-ahead bias, align market/return
-   data to filing_date (information was not knowable before it), and when merging point-in-time
-   Compustat/CRSP data respect each link's valid date window rather than using the latest mapping.
+   filing_date identifies the source 10-K. Distinctiveness uses full-snapshot peers, including later
+   filings and own-company observations. Financial facts use the cached XBRL snapshot and may
+   include revisions. These derived measures are retrospective. A point-in-time study needs
+   separately reconstructed as-of peers and financial vintages, plus dated identifier mappings.
 
-5) HONESTY (carried from the instrument)
-   Disclosure measures are descriptive language properties. M-Score / F-Score are published academic
-   SCREENS shown with their limitations (this corpus cannot re-validate them). There is no risk score,
-   no composite, and no ranking by implied concern. enforced is descriptive context, never a prediction.
+5) MEASURE DEFINITIONS
+   Disclosure measures describe language resemblance and readability. M-Score / F-Score follow
+   Beneish (1999) and Dechow et al. (2011). enforced records SEC enforcement history.
+   The app's Methodology documents model definitions, sample coverage and evaluation results.
 `;
 }
 
@@ -283,31 +283,27 @@ FILES IN THIS BUNDLE
   SAMPLE_SELECTION.txt   Exactly how this cohort/sample was defined (the filters).
 
 POINT-IN-TIME / LOOK-AHEAD
-  filing_date is the date the 10-K was filed with the SEC, the date each company-year's measures
-  became public. Use it to avoid look-ahead bias. fiscal_year is the period of report.
+  filing_date is the source 10-K filing date; fiscal_year is the period of report. Distinctiveness
+  uses full-snapshot peers and financial facts may be revised. These are retrospective measures,
+  not an as-of-filing information set. See Methodology and the dated research note.
 
 IDENTIFIERS / JOINING  (full recipes in JOINING.md)
   CIK (zero-padded 10-digit) is the PRIMARY, always-present join key. Resolvable identifiers ship as
   clean columns: ticker (NA where unresolvable), company_name, sic_code, sic_industry, accession.
   Licensed identifiers (gvkey from Compustat, cusip, and permno from CRSP) ship EMPTY by design: they require
-  Compustat/CRSP/WRDS, which this dataset does not contain. They are present as named, honest-NA
-  columns (never fabricated). Map them from CIK in your own licensed environment (see JOINING.md).
+  Compustat/CRSP/WRDS, which this dataset does not contain. They are present as named NA
+  columns. Map them from CIK in your own licensed environment (see JOINING.md).
   Keep CIK a STRING on import (the snippets do) or the leading zeros are lost.
 
 MISSING DATA
   Encoded as EMPTY (NA in R, . in Stata), NEVER zero. Critical for correct statistics.
 
-HONESTY (carried from the instrument, unchanged)
-  - The Beneish M-Score and Dechow F-Score are PUBLISHED ACADEMIC SCREENS (Beneish 1999; Dechow
-    et al. 2011), shown with their known limitations (documented false-positive rates and sample/era
-    dependence). THIS dataset cannot re-validate them: SEC XBRL begins ~2009 but most enforcement
-    cases predate it, and enforced vs. clean score distributions do not separate in this sample, so
-    their basis is the literature, presented as such.
-  - Disclosure measures (complexity, distinctiveness) are DESCRIPTIVE language properties, not
-    accounting-quality judgments. Across this corpus, disclosure language does NOT separate
-    SEC-enforced from matched-clean companies (a replicated null).
-  - There is no per-company "risk score", no ranking by implied concern, and no judgment column.
-    enforced is descriptive context, never an outcome or a prediction.
+MEASURE DEFINITIONS
+  Financial columns use the Beneish M-Score (1999) and Dechow F-Score (Dechow et al. 2011,
+  Model 1), calculated from reported XBRL inputs. Disclosure columns describe language
+  resemblance, complexity and distinctiveness. enforced records SEC enforcement history.
+  Each measure is reported separately. The app's Methodology documents model definitions,
+  missing-input rules, sample coverage and evaluation results.
 `;
 }
 

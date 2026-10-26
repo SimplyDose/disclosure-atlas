@@ -30,7 +30,7 @@ function histoHTML(bins, fmt) {
 const f2 = (v) => (v == null || !isFinite(v)) ? "—" : v.toFixed(2);
 const f3 = (v) => (v == null || !isFinite(v)) ? "—" : v.toFixed(3);
 
-const HONESTY = "Aggregate statistics describe this cohort as a group. They never judge an individual company. The Beneish M-Score (Beneish 1999) and Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) are established, peer-reviewed academic screens shown with their published limitations. This dataset cannot re-validate them (XBRL begins around 2009, most enforcement cases predate that, and enforced and clean scores do not separate in this sample), so the basis that they carry signal is the literature. This is distinct from, and consistent with, the disclosure-language null.";
+const METHOD_NOTE = "Summary statistics describe the active cohort. Disclosure measures use footnote observations; financial measures use distinct company-years. Beneish (1999) and Dechow et al. (2011) model details are in Methodology.";
 
 export class Cohort {
   // deps: { modal, body, setModal, engine, paste, nodes, getRows, headers, exporters:{downloadCSV,downloadXLSX}, describe }
@@ -110,7 +110,7 @@ export class Cohort {
       <div class="ch-tier mono">above the unconditional rate (F&gt;1): <b>${fHigh.toLocaleString()}</b> / ${sFs.n.toLocaleString()} (${(100 * fHigh / sFs.n).toFixed(1)}%)</div>
       ${histoHTML(histo(fArr, 0, Math.min(5, Math.max(2, sFs.max)), 9), (v) => v.toFixed(1))}` : `<div class="caveat">No F-Scores in this cohort.</div>`}
       ` : `<div class="caveat">No financial-quality scores for this cohort (e.g. pre-XBRL filers, or financial-sector firms without COGS / unclassified balance sheets). No score is shown rather than a fabricated one.</div>`}
-      <div class="caveat fin-honesty">${esc(HONESTY)}</div>
+      <div class="caveat fin-honesty">${esc(METHOD_NOTE)}</div>
     </div>`;
 
     // distinct company-years in the cohort (the research-panel unit of observation)
@@ -207,7 +207,7 @@ export class Cohort {
     return `Disclosure Atlas · cohort analysis\nCohort definition: ${this.describe ? this.describe() : "all disclosures"}\n`
       + `Members: ${ns.length.toLocaleString()} footnotes across ${ciks.size.toLocaleString()} companies.\n`
       + `Source: SEC EDGAR (footnote text + structured XBRL); measures computed in-browser from the shipped dataset.\nRetrieved ${date}.\n`
-      + `Note: aggregate, descriptive statistics about the group, not a judgment about any company. The M and F scores are published academic screens shown with their limitations (this dataset cannot re-validate them, so their basis is the literature).`;
+      + `Financial measures use the Beneish (1999) and Dechow et al. (2011) models. Methodology documents observation units, missing-data handling and model coverage.`;
   }
 
   _toast(t, msg) { if (t) { t.textContent = msg; clearTimeout(this._tt); this._tt = setTimeout(() => { t.textContent = ""; }, 2400); } }

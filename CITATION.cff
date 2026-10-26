@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Please cite the accompanying working paper when using the research results."
+type: software
+title: "Disclosure Atlas"
+authors:
+  - family-names: Munger
+    given-names: Joshua
+repository-code: "https://github.com/SimplyDose/disclosure-atlas"
+url: "https://simplydose.app/disclosure-atlas/"
+abstract: "A semantic-search research instrument for SEC disclosures, with company-year analysis and published financial screens."

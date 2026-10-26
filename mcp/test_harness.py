@@ -186,7 +186,7 @@ def main():
     # ── 6. query_cohort_stats ──
     section("6. query_cohort_stats — descriptive both-pillar aggregates, no risk score")
     st = S.query_cohort_stats(footnote_types=["going_concern"])
-    check("stats footnote count matches manifest going_concern", st["counts"]["footnotes"] == 6266, str(st["counts"]["footnotes"]))
+    check("stats footnote count matches manifest going_concern", st["counts"]["footnotes"] == 8914, str(st["counts"]["footnotes"]))
     check("stats has complexity + distinctiveness distributions",
           st["complexity_distribution"]["gunning_fog"] is not None and st["distinctiveness_distribution"]["value"] is not None)
     check("stats has score distribution", "beneish_m" in st["score_distribution"])

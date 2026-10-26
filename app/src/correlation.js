@@ -2,7 +2,7 @@
 // cohort. Computed over the COMPANY-YEAR panel (buildPanel) so every variable shares one unit: disclosure
 // measures are aggregated to company-year, the financial screens are already per company-year (deduped) —
 // the exact rows the data table / Table 1 / panel export use. Pearson + Spearman; pairwise (default) or
-// listwise deletion of missing (never zero-imputed). HONESTY: purely descriptive — correlations describe
+// listwise deletion of missing (never zero-imputed). METHODS: purely descriptive — correlations describe
 // linear/rank association IN THIS SAMPLE, nothing causal, no judgment; cool/neutral shading by magnitude
 // only (NEVER red/green good-bad, NEVER alarm colors). Reuses existing data; $0.
 import { buildPanel } from "./dataset.js";
@@ -46,7 +46,7 @@ function spearman(pairs) {
   return pearson(rx.map((v, i) => [v, ry[i]]));
 }
 
-const HONESTY = "Correlations are purely descriptive. They summarise the linear (Pearson) or rank (Spearman) association between measures IN THIS SAMPLE. They are not causal and not a judgment about any company, and they are sample-specific (they can change with the cohort). The Beneish M-Score (Beneish 1999) and Dechow F-Score (Dechow, Ge, Larson & Sloan 2011, Model 1) are established academic screens shown with their published limitations. This dataset cannot re-validate them (XBRL begins around 2009, most enforcement cases predate that, and enforced and clean scores do not separate in this sample). This is distinct from, and consistent with, the disclosure-language null.";
+const METHOD_NOTE = "Pearson measures linear association; Spearman measures rank association within the active company-year sample. Each cell reports its observation count under the selected missing-data rule. These associations do not establish causality. Model definitions and coverage are in Methodology.";
 
 export class Corr {
   // deps: { modal, body, setModal, engine, nodes, describe, cohortLink }
@@ -142,7 +142,7 @@ export class Corr {
         </div>
         <div class="cr-scroll"><table class="cr-table mono">${head}${body}</table></div>
         <div class="caveat cr-note">${this.method === "spearman" ? "Spearman rank" : "Pearson linear"} correlations over the company-year panel (disclosure measures aggregated to company-year; the financial screens are per distinct company-year, deduped and never footnote-duplicated). Missing data is handled by <b>${this.deletion}</b> deletion${this.deletion === "pairwise" ? ": each coefficient uses the company-years where BOTH measures are present, so N varies per cell (hover a cell for its exact N). Zeros are never imputed" : `: all coefficients use the ${lw.toLocaleString()} company-years where every measure is present`}. Shading is by |r| (magnitude) in a single neutral hue, and the sign is shown only in the number.</div>
-        <div class="caveat cr-honesty">${esc(HONESTY)}</div>
+        <div class="caveat cr-honesty">${esc(METHOD_NOTE)}</div>
       </div>`;
   }
 

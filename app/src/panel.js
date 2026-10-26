@@ -1,5 +1,5 @@
 // Finding panel renderer — real companies, real CIKs, real scores, real explanations.
-// Explanation text is shown ONLY from the pre-generated Claude findings; for any other pair a
+// Explanation text is shown ONLY from the pre-generated featured findings; for any other pair a
 // neutral, non-accusatory note is shown (never invented analysis). Honesty copy only.
 import { downloadCSV, downloadXLSX } from "./exporters.js";
 import { BM25 } from "./bm25.js";
@@ -44,11 +44,12 @@ export class Panel {
     return "SEC " + nums + (list.length > 2 ? " +" + (list.length - 2) : "");
   }
   _explanation(f) {
-    if (f.virtual) return { src: "note", text: "Nearest-neighbor matches by disclosure-language similarity, embedded in your browser. Pre-generated analyst explanations exist for the featured pairs highlighted on the map; this is an indicative match. The engine surfaces resemblance. The reader judges." };
+    if (f.virtual) return { src: "note", text: "Cross-company matches ranked by cosine similarity to your pasted disclosure, embedded in your browser." };
     const key = f.query.idx < f.match.idx ? f.query.idx + "_" + f.match.idx : f.match.idx + "_" + f.query.idx;
     const ex = this.featured[key];
-    if (ex) return { src: "claude", text: ex };
-    return { src: "note", text: "These two disclosures are nearest neighbors by cosine similarity in the bge-small embedding space (" + f.score.toFixed(4) + "). Pre-generated analyst explanations are available for the featured pairs highlighted on the map; this pair is shown by similarity only: resemblance of language, not a judgment." };
+    if (ex) return { src: "featured", text: ex };
+    if (f.score == null) return { src: "note", text: "The selected comparison has no recorded cosine score in this bundle. Explore the ranked neighbors below for scored comparisons." };
+    return { src: "note", text: "These disclosures have a recorded cosine similarity of " + f.score.toFixed(4) + " in the bge-small embedding space." + (f.matchRank != null ? " The selected comparison is ranked " + f.matchRank + " in this query's cross-company neighbors." : " The selected comparison is outside this query's precomputed top ten.") + " Similarity describes resemblance of language." };
   }
 
   _ensureBM25() { if (!this.bm25.ready) this.bm25.build(this.excerpts, this.nodes); return this.bm25; }
@@ -95,9 +96,9 @@ export class Panel {
     return `<div class="section-label mono">DISCLOSURE COMPLEXITY · GUNNING FOG</div>
       <div class="cx-grid">
         ${this._cxColumn(f.query.pasted ? "PASTED" : "QUERY", "#5BA4DD", q)}
-        ${this._cxColumn("NEAREST MATCH", matchAccent, m)}
+        ${this._cxColumn(f.matchRank === 1 ? "NEAREST MATCH" : "SELECTED COMPARISON", matchAccent, m)}
       </div>
-      <div class="caveat">Complexity is a descriptive readability measure (Gunning Fog) computed on the footnote text, not a finding or a judgment about the company. The comparison is to the median footnote in the same SIC industry.</div>`;
+      <div class="caveat">Gunning Fog on the excerpt, compared with the same-SIC industry median.</div>`;
   }
 
   // ---- descriptive distinctiveness (language unusualness vs industry peers) — comparative only ----
@@ -122,9 +123,9 @@ export class Panel {
     return `<div class="section-label mono">DISCLOSURE DISTINCTIVENESS · vs SIC INDUSTRY</div>
       <div class="cx-grid">
         ${this._dxColumn(f.query.pasted ? "PASTED" : "QUERY", "#5BA4DD", q)}
-        ${this._dxColumn("NEAREST MATCH", matchAccent, m)}
+        ${this._dxColumn(f.matchRank === 1 ? "NEAREST MATCH" : "SELECTED COMPARISON", matchAccent, m)}
       </div>
-      <div class="caveat">Distinctiveness is a descriptive measure of how unusual a footnote's language is relative to same-industry, same-type peers (distance from the peer centroid in embedding space), not a finding or a judgment about the company.</div>`;
+      <div class="caveat">Cosine distance from the centroid of same-industry, same-type peer disclosures.</div>`;
   }
 
   render(f) {
@@ -164,7 +165,7 @@ export class Panel {
           ${f.query.pasted ? "" : microScore(this.nodes[f.query.idx])}
         </div>
         <div class="co">
-          <div class="co-eyebrow mono" style="color:${matchAccent}">NEAREST MATCH</div>
+          <div class="co-eyebrow mono" style="color:${matchAccent}">${f.matchRank === 1 ? "NEAREST MATCH" : "SELECTED COMPARISON"}</div>
           <button class="co-name co-name-btn" data-company="${esc(f.match.cik)}" type="button" title="Open this company's full profile">${esc(f.match.name)}</button>
           <div class="co-tag mono">${TYPE_TAG[f.match.type]}</div>
           <div class="co-cik mono">CIK ${esc(f.match.cik)}</div>
@@ -187,8 +188,8 @@ export class Panel {
       <div class="excerpt"><div class="excerpt-eyebrow mono" style="color:#5BA4DD">${qTag} · ${esc(f.query.name)}</div><p>${esc(qExcerpt)}</p></div>
       <div class="excerpt" style="border-left-color:${matchAccent}"><div class="excerpt-eyebrow mono" style="color:${matchAccent}">${TYPE_TAG[f.match.type]} · ${esc(f.match.name)}</div><p>${esc(mExcerpt)}</p></div>
       <div class="explain">
-        <div class="explain-label mono">${expl.src === "claude" ? "WHY THESE RESEMBLE · CLAUDE" : "HOW TO READ THIS PAIR"}</div>
-        <p class="${expl.src === "claude" ? "" : "note"}">${esc(expl.text)}</p>
+        <div class="explain-label mono">${expl.src === "featured" ? "COMPARISON NOTES" : "HOW TO READ THIS PAIR"}</div>
+        <p class="${expl.src === "featured" ? "" : "note"}">${esc(expl.text)}</p>
       </div>
       ${this._complexityHTML(f, matchAccent)}
       ${this._distinctivenessHTML(f, matchAccent)}
@@ -198,8 +199,8 @@ export class Panel {
       <div class="kw-wrap" style="margin-bottom:22px">${this._baselineHTML(f)}</div>
       <div class="section-label mono">SOURCE FILINGS</div>
       <div>${sourcesHtml}</div>
-      ${f.match.type === 1 ? `<div class="caveat">${esc(this.caveats.going_concern)}</div>` : ""}
-      <div class="caveat">${esc(this.caveats.enforcement)}</div>`;
+      ${f.match.type === 1 ? `<div class="caveat">Going-concern classification follows extracted language in the source disclosure.</div>` : ""}
+      <div class="caveat">SEC AAER history is company-level context. Methodology describes the sources and evaluation.</div>`;
 
     this._lastFinding = f;
     this.body.querySelectorAll("[data-nb]").forEach((b) => b.addEventListener("click", () => this.onNeighbor(+b.getAttribute("data-nb"))));
@@ -229,8 +230,9 @@ export class Panel {
     const q = node(f.query.idx);
     return [
       ref("Query disclosure", q, f.query.pasted),
-      ref("Nearest match", node(f.match.idx), false),
-      `Disclosure-language similarity (bge-small, cosine): ${f.score.toFixed(4)}.`,
+      ref(f.matchRank === 1 ? "Nearest match" : "Selected comparison", node(f.match.idx), false),
+      `Disclosure-language similarity (bge-small, cosine): ${f.score == null ? "unavailable" : f.score.toFixed(4)}.`,
+      f.matchRank != null ? `Cross-company neighbor rank: ${f.matchRank}.` : "Selected comparison; no rank in this query's precomputed top ten.",
       `Surfaced by Disclosure Atlas (disclosure-atlas.vercel.app); retrieved ${date}. Resemblance of disclosure language, not a claim about either company.`,
     ].filter(Boolean).join("\n");
   }
@@ -243,7 +245,9 @@ export class Panel {
     const q = f.query.idx >= 0 ? this.nodes[f.query.idx] : null;
     const qm = q ? metrics(q) : (() => { const r = readability(f.query.excerpt || ""); return [r.fog, r.asl, r.wc, r.cwp, "", "", "", ...scoreCells(null)]; })();
     const rows = [["00", f.query.pasted ? "Your pasted disclosure" : f.query.name, q ? q.cik : "", q ? q.tk : "", ...xwalkCells(q), TFULL[f.query.type], "query", q ? (q.e ? "yes" : "no") : "", q ? q.acc : "", q ? q.url : "", ...qm]];
-    for (const nb of f.neighbors) { const n = this.nodes[nb.idx]; rows.push([String(nb.rank + 1).padStart(2, "0"), n.name, n.cik, n.tk, ...xwalkCells(n), TFULL[n.t], nb.score.toFixed(4), n.e ? "yes" : "no", n.acc, n.url, ...metrics(n)]); }
+    const addMatch = (idx, rank, score) => { const n = this.nodes[idx]; rows.push([rank, n.name, n.cik, n.tk, ...xwalkCells(n), TFULL[n.t], score == null ? "" : score.toFixed(4), n.e ? "yes" : "no", n.acc, n.url, ...metrics(n)]); };
+    if (f.match.idx !== f.query.idx && !f.neighbors.some((n) => n.idx === f.match.idx)) addMatch(f.match.idx, f.matchRank == null ? "selected" : String(f.matchRank).padStart(2, "0"), f.score);
+    for (const nb of f.neighbors) addMatch(nb.idx, String(nb.rank + 1).padStart(2, "0"), nb.score);
     return rows;
   }
   async _export(f, kind) {
@@ -271,6 +275,7 @@ export class Panel {
   _animateScore(target, fresh) {
     cancelAnimationFrame(this._scoreRaf);
     const el = this.body.querySelector("#scoreBig"); if (!el) return;
+    if (target == null) { el.textContent = "Unavailable"; return; }
     if (this.reduced || !fresh) { el.textContent = target.toFixed(4); return; }
     const start = performance.now(), dur = 520;
     const step = (now) => { let t = (now - start) / dur; if (t >= 1) { el.textContent = target.toFixed(4); return; } el.textContent = (this.ease(t) * target).toFixed(4); this._scoreRaf = requestAnimationFrame(step); };

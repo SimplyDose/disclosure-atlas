@@ -10,7 +10,7 @@ reported in the paper before any figure is drawn.
   Figure 1  Financial-score coverage of the cohort (= Table 1 Ns: 1,120 Beneish and
             1,323 Dechow of 4,186 company-years; discussed in Section 3).
   Figure 2  Spearman correlation matrix among the four principal measures (= Table 2).
-  Figure 3  Distribution of Spearman rho across all 460 tests of the pre-registered
+  Figure 3  Distribution of Spearman rho across all 460 tests of the locally recorded
             systematic screen (= Table 4 family; survivors marked).
   Figure 4  Firm-level Spearman correlations with firm-bootstrap 95% CIs (= Section 5.5;
             percentile bootstrap over firms, 4,000 resamples, seed 7).

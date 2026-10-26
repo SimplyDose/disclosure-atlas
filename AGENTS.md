@@ -13,7 +13,7 @@ approved scoped decision before product behavior, schema or architecture changes
 The approved offline-check pilot changes verification and descriptive documentation,
 not the product or research scope.
 
-- Preserve the paper's pre-registered claims, Bonferroni/FDR safeguards and known-answer
+- Preserve the archived paper, recorded analysis definitions, Bonferroni/FDR safeguards and known-answer
   evaluation. An offline pass is not full research replication.
 - No new ingestion, live SEC calls or fabricated data. Use existing derived assets
   with attribution. Financial screens and enforcement history are research context,
@@ -28,7 +28,7 @@ not the product or research scope.
 ## Verification and completion
 
 - Formula/edge checks: `.venv-offline/bin/python eval/run_eval.py --offline` after the
-  setup in README. Keep full/fast research evaluation available as documented in
+  setup in docs/REPRODUCIBILITY.md. Keep full/fast research evaluation available as documented in
   [eval/README.md](eval/README.md).
 - The local read-only MCP server is `mcp/server.py`; its research caveats in
   `mcp/honesty.py` must travel with scores. For MCP changes, use the full project

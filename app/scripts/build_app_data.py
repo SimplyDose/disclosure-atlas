@@ -22,7 +22,6 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 EMB = ROOT / "data" / "embeddings"
 OUT = ROOT / "app" / "public" / "data"
 sys.path.insert(0, str(ROOT / "ingestion"))
-from db import connect  # noqa: E402
 
 WORLD_SCALE = 820.0      # projection coords are in [-1,1]; scale to the design's world units
 EXCERPT_CHARS = 540
@@ -147,7 +146,38 @@ def readability(text: str) -> dict:
     return {"fog": round(fog, 1), "asl": round(asl, 1), "wc": wc, "cwp": round(cwp, 1)}
 
 
+def build_featured(findings, id_to_idx, vecs):
+    """Keep annotations only when their original score matches the currently mapped vectors."""
+    featured = []
+    for fd in findings:
+        qi = id_to_idx.get(fd["a"]["footnote_id"])
+        mi = id_to_idx.get(fd["b"]["footnote_id"])
+        if qi is None or mi is None:
+            continue
+        try:
+            score = float(fd["similarity"])
+        except (TypeError, ValueError):
+            continue
+        a = np.asarray(vecs[qi], dtype=np.float64)
+        b = np.asarray(vecs[mi], dtype=np.float64)
+        norm = float(np.linalg.norm(a) * np.linalg.norm(b))
+        if not np.isfinite(score) or not np.isfinite(norm) or norm == 0:
+            continue
+        cosine = float(a @ b) / norm
+        # Source scores are rounded to four decimals; allow rounding, not stale pair alignment.
+        if not np.isfinite(cosine) or abs(score - cosine) > 0.0001:
+            continue
+        featured.append({
+            "qi": qi, "mi": mi,
+            "type": fd["footnote_type"], "similarity": score,
+            "explanation": fd["explanation"],
+        })
+    return featured
+
+
 def main() -> int:
+    from db import connect
+
     OUT.mkdir(parents=True, exist_ok=True)
     meta = json.loads((EMB / "meta.json").read_text())
     proj = json.loads((EMB / "projection.json").read_text())
@@ -267,17 +297,7 @@ def main() -> int:
     neighbors = compute_neighbors_batched(vecs, ciks, n)
 
     # findings -> node-indexed featured pairs (skip any that don't map)
-    featured = []
-    for fd in findings:
-        qi = id_to_idx.get(fd["a"]["footnote_id"])
-        mi = id_to_idx.get(fd["b"]["footnote_id"])
-        if qi is None or mi is None:
-            continue
-        featured.append({
-            "qi": qi, "mi": mi,
-            "type": fd["footnote_type"], "similarity": fd["similarity"],
-            "explanation": fd["explanation"],
-        })
+    featured = build_featured(findings, id_to_idx, vecs)
 
     TYPE_NAMES = {0: "rev_rec", 1: "going_concern", 2: "related_party", 3: "cam", 4: "mda", 5: "risk_factors"}
     by_type = {TYPE_NAMES[k]: int(sum(1 for nd in nodes if nd["t"] == k)) for k in range(6)}
@@ -295,23 +315,17 @@ def main() -> int:
         "featured_count": len(featured),
         "corpus": corpus,
         "validation": {
-            "headline": "Across 161,469 footnotes and SIX disclosure types, disclosure language does NOT separate SEC-enforced from matched-clean companies. This is a null I re-confirmed as the corpus grew to 161,469 footnotes across 3,253 companies, not a gap I'm hiding. That honesty is the point.",
-            "rev_rec": "Revenue recognition: no separable signal (separation Cohen's d ≈ −0.12; semantic retrieval does not beat a keyword baseline).",
-            "going_concern": "Going concern: only a weak distress tendency (separation d ≈ +0.15, below the 0.2 effect-size bar). It is real but far from a predictor.",
-            "new_types": "The four narrative/relationship types show no enforcement signal either: separation d ≈ related-party −0.25, CAMs +0.11, MD&A −0.06, risk factors +0.02. None clears 0.2. The richer text did not rescue the hypothesis.",
-            "engine": "What IS validated: the semantic engine retrieves concept-level matches that keyword search misses (e.g. cosine 0.88 at keyword rank 8,982). The map shows resemblance of disclosure language.",
-            "stance": "The instrument surfaces resemblance of disclosure language; the reader judges. Enforcement history is shown as context about a company, never as a prediction from its disclosures. Apparent 'enforced clusters' are industry-peer effects (e.g. direct competitors), not an enforcement signal in the disclosures.",
+            "headline": "The current corpus does not reach the specified positive similarity-clustering threshold (Cohen d >= 0.2). This is distinct from supervised enforcement-classification performance.",
+            "rev_rec": "Revenue recognition similarity separation: d = -0.117. Current industry/era-matched classifier probe: AUC 0.686 +/- 0.076.",
+            "going_concern": "Going-concern similarity separation: d = +0.153. Current industry/era-matched classifier probe: AUC 0.650 +/- 0.042.",
+            "new_types": "Similarity separation d: related-party -0.253, CAM +0.112, MD&A -0.057, risk factors +0.015. The negative related-party difference exceeds 0.2 in absolute magnitude but is opposite to the positive-clustering hypothesis.",
+            "engine": "Semantic comparisons use bge-small-en-v1.5. Scores describe resemblance of the paired disclosure excerpts; map positions are a two-dimensional projection.",
+            "stance": "Enforcement labels describe company-level SEC AAER history. They are not time-aligned outcomes or predictions from a disclosure."
         },
         "caveats": {
-            "enforcement": "SEC enforcement history (AAER) is shown as context about a company's "
-                           "history. It is NOT a prediction from its disclosures: my validation "
-                           "backtest found disclosure language does not separate enforced from "
-                           "matched-clean companies for these footnote types.",
-            "going_concern": "Going-concern disclosures carry only a weak distress signal "
-                             "(classifier AUC ≈ 0.61), a tendency, never a verdict.",
-            "method": "Points are placed by UMAP over bge-small embeddings of the footnote text. "
-                      "Similarity is cosine in that embedding space. The engine surfaces "
-                      "resemblance of disclosure language; the reader judges.",
+            "enforcement": "Company-level SEC AAER history is contextual. Similarity separation and classifier probes answer different questions; see the dated evaluation and research note.",
+            "going_concern": "The label is extracted going-concern language, not an independently verified auditor-opinion classification. Current matched classifier AUC: 0.650 +/- 0.042.",
+            "method": "Points are placed by UMAP over bge-small embeddings of the footnote text. Similarity is cosine in that embedding space. The engine surfaces resemblance of disclosure language; the reader judges."
         },
     }
 

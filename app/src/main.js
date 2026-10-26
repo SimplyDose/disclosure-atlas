@@ -30,7 +30,7 @@ async function boot() {
   let nodes, neighbors, findings, aaer, manifest;
   let excerpts = {};
   try {
-    // Load render-critical data upfront; defer the large excerpts file (~50 MB) so the 94k map
+    // Load render-critical data upfront; defer the large excerpts file (~50 MB) so the corpus map
     // paints fast. Excerpts are needed only when a finding opens / BM25 runs — lazy-loaded below.
     [nodes, neighbors, findings, aaer, manifest] = await Promise.all([
       loadJSON("./data/nodes.json"), loadJSON("./data/neighbors.json"),
@@ -59,7 +59,7 @@ async function boot() {
   const indSel = $("industry");
   for (const ind of manifest.industries) { const o = document.createElement("option"); o.value = ind; o.textContent = ind; indSel.appendChild(o); }
 
-  // featured map (real Claude explanations) keyed by sorted index pair
+  // Featured comparison notes, keyed by sorted index pair.
   const featuredMap = {};
   for (const f of findings) { const k = f.qi < f.mi ? f.qi + "_" + f.mi : f.mi + "_" + f.qi; featuredMap[k] = f.explanation; }
 
@@ -96,7 +96,7 @@ async function boot() {
 
   const hero = $("hero"), readout = $("readout");
   let currentQuery = null; // {type:'node',idx} | {type:'vec',vec} — drives bulk-export similarity
-  const engine = new Constellation(cv, { nodes, neighbors }, {
+  const engine = new Constellation(cv, { nodes, neighbors, findings }, {
     onSelect: (f) => {
       if (engine.drift) closeDrift();   // a new finding clears any active drift trail
       hero.classList.add("is-hidden");
@@ -178,7 +178,7 @@ async function boot() {
   $("searchBtn").addEventListener("click", runSearch);
   $("search").addEventListener("keydown", (e) => { if (e.key === "Enter") runSearch(); });
 
-  // presets -> real featured pairs (guarantees a real Claude explanation shows)
+  // Presets open an existing featured pair with comparison notes.
   const firstByType = (t, enfPref) => {
     const pool = findings.filter((f) => (t == null || f.type === t));
     return (enfPref && pool.find((f) => nodes[f.qi].e || nodes[f.mi].e)) || pool[0] || findings[0];
@@ -423,7 +423,7 @@ async function boot() {
   $("corrBtn").addEventListener("click", () => corr.open());
   window.__atlas.corr = corr;
 
-  // SYSTEMATIC SCREEN — pre-registered multiple-hypothesis screening (safeguards non-negotiable):
+  // SYSTEMATIC SCREEN — locally recorded test family with mandatory corrections:
   // full family enumerated + registered BEFORE results; every test always reported; Bonferroni + BH
   // FDR mandatory; survivors = candidates for confirmation, never findings; Spearman (robust) only.
   const screen = new Screen({
@@ -498,7 +498,7 @@ async function boot() {
 
   // methodology / about
   const aboutModal = $("aboutModal");
-  const c = manifest.corpus, v = manifest.validation;
+  const c = manifest.corpus, fin = manifest.financials;
   const forms = Object.entries(c.filing_forms).map(([k, n]) => k + " " + n.toLocaleString()).join(" · ");
   const cell = (num, cap) => `<div class="method-cell"><div class="method-num">${num}</div><div class="method-cap">${esc(cap)}</div></div>`;
   $("aboutBody").innerHTML = `
@@ -512,20 +512,12 @@ async function boot() {
     </div>
     <p><span class="k">METHOD</span>Each footnote is embedded with <strong>bge-small</strong> (the same ONNX model runs in your browser for the paste feature). Similarity is <strong>cosine</strong> in that 384-dimension space; the map is a UMAP projection of it. ${c.aaer_releases.toLocaleString()} SEC AAER releases supply the enforcement overlay.</p>
     <div class="method-finding">
-      <p style="margin:0 0 8px"><span class="k">VALIDATION · STATED PLAINLY</span>${esc(v.headline)}</p>
-      <p style="margin:0 0 6px;font-size:12.5px">${esc(v.rev_rec)}</p>
-      <p style="margin:0 0 6px;font-size:12.5px">${esc(v.going_concern)}</p>
-      ${v.new_types ? `<p style="margin:0 0 6px;font-size:12.5px">${esc(v.new_types)}</p>` : ""}
-      <p style="margin:0;font-size:12.5px">${esc(v.engine)}</p>
+      <p style="margin:0 0 8px"><span class="k">VALIDATION RESULTS</span>The similarity backtest does not support the directional hypothesis that enforced-company disclosures show greater separation: none of the six types reaches positive Cohen's d ≥ 0.2. Related-party disclosures have a negative effect (d = −0.253). This result concerns a particular measure and sample, not all possible enforcement information in disclosure language.</p>
+      <p style="margin:0">The current-corpus evaluation records company-grouped footnote-type AUC <strong>0.953</strong>. Industry/era-matched enforcement probes reach <strong>0.686 ± 0.076</strong> for revenue recognition and <strong>0.650 ± 0.042</strong> for going concern. These classifier results are distinct from the similarity backtest. The retired-v1 AUCs cannot be regenerated from current artifacts. See <a href="https://github.com/SimplyDose/disclosure-atlas/blob/main/eval/REPORT.md" target="_blank" rel="noopener noreferrer">the evaluation record</a>.</p>
     </div>
-    <p><span class="k">STANCE</span>${esc(v.stance)}</p>
-    <p><span class="k">FINANCIAL-QUALITY SCREENS · A SECOND PILLAR</span>Alongside disclosure language, the instrument computes two <strong>published, peer-reviewed academic screening models</strong> from SEC XBRL structured financials, per company-fiscal-year: the <strong>Beneish M-Score</strong> (Beneish 1999) and the <strong>Dechow F-Score</strong> (Dechow, Ge, Larson &amp; Sloan 2011, Model 1). Each is shown with its full <strong>component breakdown</strong> (the ratios that drive the number) and its published limitations. Coverage: Beneish M for 6,252 company-years, Dechow F for 5,782, across ~1,623 companies; company-years with insufficient inputs (e.g. financial-sector firms without COGS or an unclassified balance sheet) get <strong>no score</strong>, never a fabricated one.</p>
-    <div class="method-finding">
-      <p style="margin:0 0 8px"><span class="k">THESE ARE SCREENS, NOT VERDICTS, AND NOT MY JUDGMENT</span>They are the outputs of established academic models, presented as such: named, cited, with drivers and known limits. Those limits include documented high false-positive rates, legitimate M&amp;A or restructuring moving the indices (an acquisition lifts the asset-quality index, for example), and sample/era dependence.</p>
-      <p style="margin:0;font-size:12.5px">This dataset <strong>cannot re-validate</strong> the models: SEC XBRL begins ~2009 but most enforcement cases predate that, and in this sample enforced and clean scores do not separate. So the basis that these models carry signal is the <strong>published literature</strong>, presented as such. This is distinct from, and consistent with, the disclosure-language null above.</p>
-    </div>
-    <p><span class="k">SYSTEMATIC SCREEN · PRE-REGISTERED MULTIPLE-HYPOTHESIS TESTING</span>The <strong>⌗ SYSTEMATIC SCREEN</strong> view runs an integrity-first exploratory screen: the full test family (disclosure measures × financial measures × pre-specified subgroups) is <strong>enumerated and registered before any result is computed</strong>, every test is always reported (sorting reorders, nothing is hidden), <strong>Bonferroni and Benjamini&ndash;Hochberg FDR correction are mandatory</strong> across the whole family, the effect size (Spearman ρ) sits beside every p-value, and anything that survives is labeled a <strong>candidate association that warrants confirmation on independent data</strong>, never a finding. Rank-based statistics throughout (the financial screens contain documented extreme outliers). Exploratory screening generates hypotheses, not conclusions.</p>
-    <p><span class="k">SOURCES & REPRODUCIBILITY</span>Every company, CIK, similarity score, and filing link is real and resolves to the actual document on sec.gov. ${findings.length} featured pairs carry a pre-generated Claude explanation; all other pairs are shown by similarity only. Financial scores are reproducible from their stored components and the cited formulas. Export any result set (now incl. M/F scores + components) to CSV or Excel, or copy a stable citation, from the finding panel.</p>
+    <p><span class="k">FINANCIAL SCREENS</span>The <strong>Beneish M-Score</strong> (1999) and <strong>Dechow F-Score</strong> (Dechow, Ge, Larson &amp; Sloan 2011, Model 1) are computed from SEC XBRL company-year financials, with full component breakdowns. The snapshot includes ${fin.beneish_scored.toLocaleString()} Beneish and ${fin.dechow_scored.toLocaleString()} Dechow scores across ${fin.companies_with_financials.toLocaleString()} companies with assembled financials. Insufficient inputs produce no score. Published models are sample-dependent and can produce false positives; limited overlap between XBRL years and enforcement cases prevents independent model revalidation here.</p>
+    <p><span class="k">SYSTEMATIC SCREEN</span>Define a family of measure pairs and subgroups before results. The browser records its specification, timestamp and SHA-256 locally, then reports every test with mandatory <strong>Bonferroni and Benjamini–Hochberg FDR corrections</strong>. This local analysis record is not external preregistration. Spearman ρ accompanies each p-value; surviving associations are candidates for confirmation on independent data.</p>
+    <p><span class="k">SOURCES &amp; REPRODUCIBILITY</span>Findings retain company identifiers, source excerpts and EDGAR filing links. ${findings.length} featured pairs include AI-assisted comparison notes; other pairs show measured similarity without generated interpretation. Export cohorts and scores with components to CSV or Excel, or copy a citation from the finding panel. <a href="https://github.com/SimplyDose/disclosure-atlas/blob/main/docs/REPRODUCIBILITY.md" target="_blank" rel="noopener noreferrer">Reproduction instructions</a> distinguish offline checks from the full research pipeline. The <a href="https://github.com/SimplyDose/disclosure-atlas/blob/main/paper/RESEARCH_NOTE_2026-10-25.md" target="_blank" rel="noopener noreferrer">dated research note</a> records corrections and sensitivity results.</p>
     <div style="margin-top:4px"><button id="reproBtn" class="act-btn mono" type="button">↗ full methods &amp; reproducibility</button></div>`;
   $("aboutBtn").addEventListener("click", () => setModal(aboutModal, true));
   $("aboutClose").addEventListener("click", () => setModal(aboutModal, false));
