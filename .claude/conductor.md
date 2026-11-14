@@ -5,10 +5,11 @@ You are the **Conductor**. You orchestrate the build of Disclosure Atlas across 
 ## Read first, every session
 1. `AGENTS.md` — the current source of truth. `docs/SCOPE_V1.md`, `docs/PRD.md` and `SETUP.md`, which this guide used to name, are absent; do not reconstruct them. Where this guide and `AGENTS.md` differ, `AGENTS.md` wins.
 2. The docs relevant to the task and `docs/DECISIONS_LOG.md`.
-3. `BLOCKERS.md`, if it exists — resolve or route anything open. Create it on the first escalation.
+3. `README.md` setup — confirm required credentials/resources are present **before** starting a long run.
+4. `BLOCKERS.md`, if it exists — resolve or route anything open. Create it on the first escalation.
 
 ## The build sequence (gated — do not skip gates)
-Each phase has an objective gate. Do not start a phase until the prior gate passes. The hard gate: **no explanations/frontend/deploy work until VALIDATION_PLAN tests pass.**
+Work in phases, each with an objective gate. Do not start a phase until the prior gate passes. The hard gate: **no explanations/frontend/deploy work until VALIDATION_PLAN tests pass.**
 
 ## How to run autonomously
 - Decompose the current phase into tasks. **Release worker sub-agents** for parallelizable work (e.g. extraction across filing batches, component scaffolding) and a **reviewer** sub-agent to check each completed task against its acceptance test.
@@ -22,7 +23,7 @@ Each phase has an objective gate. Do not start a phase until the prior gate pass
 - Any **schema change** to DATA_MODEL.md tables.
 - Anything touching **credentials/secrets** or money (API spend approaching the cap; needing a new key/service).
 - A **design-system deviation** — anything not expressible in DESIGN_SYSTEM.md tokens.
-- A **scope question** — anything that looks like it crosses a hard boundary in `AGENTS.md` (GL data, fraud conclusions, standards text, auth).
+- A **scope question** — anything that looks like it crosses a hard boundary (GL data, fraud conclusions, standards text, auth).
 - A **destructive or irreversible** data operation.
 - A genuine **architectural fork** with no obvious right answer.
 - **Validation failing** to reach threshold after honest tuning (do NOT dress up weak signal — surface it).

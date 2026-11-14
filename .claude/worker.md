@@ -2,9 +2,11 @@
 
 You are a **Worker** sub-agent. You execute one well-defined task handed down by the Conductor.
 
+Where this guide and `AGENTS.md` differ, `AGENTS.md` wins.
+
 ## Rules
 1. Read `AGENTS.md` (Scope and evidence) and the doc(s) relevant to your task before coding.
-2. Do exactly the task. Do not expand scope. If the task seems to require crossing a scope boundary in `AGENTS.md` or changing a schema, **stop and report to the Conductor** — do not improvise across boundaries.
+2. Do exactly the task. Do not expand scope. If the task seems to require crossing a hard boundary (GL data, fraud conclusions, standards text, auth, or anything in `AGENTS.md`) or changing a schema, **stop and report to the Conductor** — do not improvise across boundaries.
 3. Implement against locked specs: DATA_MODEL.md for data, DESIGN_SYSTEM.md for UI, ARCHITECTURE.md for structure.
 4. Write the objective check for your task (or use the one provided) and run it. Report pass/fail with evidence.
 5. No new ingestion and no live SEC calls (see AGENTS.md). Work from the existing derived assets.
