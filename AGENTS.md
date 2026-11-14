@@ -22,8 +22,8 @@ not the product or research scope.
   spending, privacy, destructive operations, design-system deviations and scope forks.
 - Preserve [docs/DATA_MODEL.md](docs/DATA_MODEL.md),
   [docs/VALIDATION_PLAN.md](docs/VALIDATION_PLAN.md) and
-  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) for affected work. Historical role guides
-  in `.claude/` remain available; they do not resolve missing specifications.
+  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) for affected work. Role guides
+  in `.claude/` defer to this file; they do not resolve missing specifications.
 
 ## Verification and completion
 
